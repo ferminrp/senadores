@@ -12,77 +12,77 @@ import {
 
 type VotacionCardProps = {
   id: string
-  motionNumber: string
-  projectTitle: string
-  date: string
-  affirmative: number
-  negative: number
-  abstentions: number
-  result: string
+  proyecto: string
+  titulo: string
+  fecha: string
+  afirmativos: number
+  negativos: number
+  abstenciones: number
 }
 
 export default function VotacionCard({
   id,
-  motionNumber,
-  projectTitle,
-  date,
-  affirmative,
-  negative,
-  abstentions,
-  result,
+  proyecto,
+  titulo,
+  fecha,
+  afirmativos,
+  negativos,
+  abstenciones,
 }: VotacionCardProps) {
-  const total = affirmative + negative + abstentions
-  const affirmativePercentage = ((affirmative / total) * 100).toFixed(2)
-  const negativePercentage = ((negative / total) * 100).toFixed(2)
-  const abstentionsPercentage = ((abstentions / total) * 100).toFixed(2)
-
-  const getBadgeVariant = (result: string) => {
-    switch (result) {
-      case "AFIRMATIVA":
-        return "default"
-      case "NEGATIVA":
-        return "destructive"
-      default:
-        return "secondary"
-    }
-  }
-
-  const truncatedTitle = projectTitle?.length > 50 
-    ? `${projectTitle.substring(0, 50)}...` 
-    : projectTitle || "Sin título"
+  // Asegurarse de que los valores sean números
+  const affirmativeNum = Number(afirmativos) || 0
+  const negativeNum = Number(negativos) || 0
+  const abstentionsNum = Number(abstenciones) || 0
+  
+  const total = affirmativeNum + negativeNum + abstentionsNum
+  
+  // Calcular porcentajes solo si hay votos
+  const affirmativePercentage = total > 0 ? ((affirmativeNum / total) * 100).toFixed(1) : "0.0"
+  const negativePercentage = total > 0 ? ((negativeNum / total) * 100).toFixed(1) : "0.0"
+  const abstentionsPercentage = total > 0 ? ((abstentionsNum / total) * 100).toFixed(1) : "0.0"
 
   return (
     <Link
       href={`/votaciones/${id}`}
       className="block p-6 bg-gray-800 rounded-lg shadow-md hover:bg-gray-700 transition-colors"
     >
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex flex-col gap-2 mb-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <h2 className="text-2xl font-bold truncate">{truncatedTitle}</h2>
+              <h2 className="text-xl font-bold line-clamp-2">{titulo || "Sin título"}</h2>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="max-w-sm">{projectTitle || "Sin título"}</p>
+              <p className="max-w-sm">{titulo || "Sin título"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <Badge variant={getBadgeVariant(result)} className="text-sm shrink-0">{result}</Badge>
+        <p className="text-sm text-gray-400">{proyecto}</p>
       </div>
-      <p className="text-gray-400 mb-4">Fecha: {date}</p>
-      <ProgressBar affirmative={affirmative} negative={negative} abstentions={abstentions} />
+      <p className="text-gray-400 mb-4">Fecha: {fecha}</p>
+      <ProgressBar 
+        affirmative={affirmativeNum} 
+        negative={negativeNum} 
+        abstentions={abstentionsNum} 
+      />
       <div className="flex justify-between text-sm mt-4">
         <span className="flex items-center">
           <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-          <span className="text-green-400">Afirmativo: {affirmativePercentage}%</span>
+          <span className="text-green-400">
+            Afirmativo: {affirmativePercentage}% ({affirmativeNum})
+          </span>
         </span>
         <span className="flex items-center">
           <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-          <span className="text-red-400">Negativo: {negativePercentage}%</span>
+          <span className="text-red-400">
+            Negativo: {negativePercentage}% ({negativeNum})
+          </span>
         </span>
         <span className="flex items-center">
           <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
-          <span className="text-yellow-400">Abstenciones: {abstentionsPercentage}%</span>
+          <span className="text-yellow-400">
+            Abstenciones: {abstentionsPercentage}% ({abstentionsNum})
+          </span>
         </span>
       </div>
     </Link>

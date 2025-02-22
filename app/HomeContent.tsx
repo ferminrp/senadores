@@ -22,17 +22,16 @@ export default function HomeContent() {
             ? Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-48" />)
             : votaciones
                 ?.slice(0, 9)
-                .map((votacion: any) => (
+                .map((votacion) => (
                   <VotacionCard
-                    key={votacion.act_id}
-                    id={votacion.act_id}
-                    motionNumber={votacion.motion_number}
-                    projectTitle={votacion.project_title}
-                    date={votacion.date}
-                    affirmative={votacion.affirmative}
-                    negative={votacion.negative}
-                    abstentions={votacion.abstentions}
-                    result={votacion.result}
+                    key={votacion.actaId}
+                    id={votacion.actaId.toString()}
+                    proyecto={votacion.proyecto}
+                    titulo={votacion.titulo}
+                    fecha={votacion.fecha}
+                    afirmativos={Number(votacion.afirmativos)}
+                    negativos={Number(votacion.negativos)}
+                    abstenciones={Number(votacion.abstenciones)}
                   />
                 ))}
         </div>

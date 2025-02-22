@@ -11,13 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 function getSenadorVotes(name: string, votaciones: any[]) {
   return votaciones
     .map((votacion: any) => {
-      const vote = votacion.votes.find((v: any) => v.name === name)
+      const vote = votacion.votos.find((v: any) => v.nombre === name)
       if (vote) {
         return {
-          actId: votacion.act_id,
-          motionNumber: votacion.motion_number,
-          date: votacion.date,
-          vote: vote.vote,
+          actId: votacion.actaId,
+          motionNumber: votacion.proyecto,
+          date: votacion.fecha,
+          vote: vote.voto,
         }
       }
       return null
