@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useVotaciones, useSenatorsData } from "../lib/data"
+import type { Votacion, Voto } from "../lib/data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Avatar from "../components/Avatar"
@@ -27,13 +28,6 @@ type Senator = {
   totalVotes: number
 }
 
-type Votacion = {
-  act_id: string
-  motion_number: string
-  project_title: string
-  votes: { name: string; vote: string }[]
-}
-
 type VoteComparison = {
   totalVotes: number
   matchingVotes: number
@@ -56,76 +50,82 @@ export default function ComparativaContent() {
   }
 
   useEffect(() => {
-    if (senatorsData && votaciones) {
-      const senatorVoteCounts: { [key: string]: number } = {}
+    if (!senatorsData || !votaciones) return;
+    
+    const senatorVoteCounts: { [key: string]: number } = {}
       
-      // Count total votes per senator
-      votaciones.forEach((votacion: Votacion) => {
-        votacion.votes.forEach((vote) => {
-          if (!senatorVoteCounts[vote.name]) {
-            senatorVoteCounts[vote.name] = 0
-          }
-          senatorVoteCounts[vote.name]++
-        })
-      })
-
-      const senatorsList = senatorsData.map((senator: SenatorData) => ({
-        name: senator.name,
-        imgUrl: senator.img,
-        party: truncateText(senator.party || "Sin partido"),
-        totalVotes: senatorVoteCounts[senator.name] || 0
-      }))
-      setSenators(senatorsList)
+    // Count total votes per senator
+    for (const votacion of votaciones) {
+      if (!votacion?.votos) continue;
+      
+      for (const voto of votacion.votos) {
+        if (!senatorVoteCounts[voto.nombre]) {
+          senatorVoteCounts[voto.nombre] = 0
+        }
+        senatorVoteCounts[voto.nombre]++
+      }
     }
+
+    const senatorsList = senatorsData.map((senator: SenatorData) => ({
+      name: senator.name,
+      imgUrl: senator.img,
+      party: truncateText(senator.party || "Sin partido"),
+      totalVotes: senatorVoteCounts[senator.name] || 0
+    }))
+    setSenators(senatorsList)
   }, [senatorsData, votaciones])
 
-  useEffect(() => {
-    if (selectedSenator1 && selectedSenator2 && votaciones) {
-      compareSenators()
-    }
-  }, [selectedSenator1, selectedSenator2, votaciones])
+  const compareSenators = useCallback(() => {
+    if (!votaciones || !selectedSenator1 || !selectedSenator2) return;
 
-  const compareSenators = () => {
-    let totalVotes = 0
-    let matchingVotes = 0
-    const matchingProjects: VoteComparison["matchingProjects"] = []
-    const differingProjects: VoteComparison["differingProjects"] = []
+    let matchingVotes = 0;
+    const matchingProjects: { id: string; motionNumber: string; projectTitle: string; vote: string }[] = [];
+    const differingProjects: { id: string; motionNumber: string; projectTitle: string; votes: { [key: string]: string } }[] = [];
 
-    votaciones.forEach((votacion: Votacion) => {
-      const vote1 = votacion.votes.find((v) => v.name === selectedSenator1)?.vote
-      const vote2 = votacion.votes.find((v) => v.name === selectedSenator2)?.vote
+    for (const votacion of votaciones) {
+      const vote1 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator1)?.voto;
+      const vote2 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator2)?.voto;
 
       if (vote1 && vote2) {
-        totalVotes++
         if (vote1 === vote2) {
-          matchingVotes++
+          matchingVotes++;
           matchingProjects.push({
-            id: votacion.act_id,
-            motionNumber: votacion.motion_number,
-            projectTitle: votacion.project_title,
-            vote: vote1,
-          })
+            id: votacion.actaId.toString(),
+            motionNumber: votacion.proyecto,
+            projectTitle: votacion.titulo,
+            vote: vote1
+          });
         } else {
           differingProjects.push({
-            id: votacion.act_id,
-            motionNumber: votacion.motion_number,
-            projectTitle: votacion.project_title,
-            votes: { [selectedSenator1]: vote1, [selectedSenator2]: vote2 },
-          })
+            id: votacion.actaId.toString(),
+            motionNumber: votacion.proyecto,
+            projectTitle: votacion.titulo,
+            votes: {
+              [selectedSenator1]: vote1,
+              [selectedSenator2]: vote2
+            }
+          });
         }
       }
-    })
+    }
 
-    const matchPercentage = (matchingVotes / totalVotes) * 100
+    const totalVotes = matchingVotes + differingProjects.length;
+    const matchPercentage = totalVotes > 0 ? (matchingVotes / totalVotes) * 100 : 0;
 
     setComparison({
       totalVotes,
       matchingVotes,
       matchPercentage,
       matchingProjects,
-      differingProjects,
-    })
-  }
+      differingProjects
+    });
+  }, [votaciones, selectedSenator1, selectedSenator2]);
+
+  useEffect(() => {
+    if (selectedSenator1 && selectedSenator2 && votaciones) {
+      compareSenators()
+    }
+  }, [selectedSenator1, selectedSenator2, votaciones, compareSenators])
 
   if (isErrorVotaciones || isErrorSenatorsData) return <div>Error al cargar los datos</div>
 
@@ -263,14 +263,14 @@ export default function ComparativaContent() {
                       </p>
                       <p
                         className={`text-sm ${
-                          project.vote === "SI"
+                          project.vote === "si"
                             ? "text-green-400"
-                            : project.vote === "NO"
+                            : project.vote === "no"
                               ? "text-red-400"
                               : "text-yellow-400"
                         }`}
                       >
-                        Ambos votaron: {project.vote}
+                        Ambos votaron: {project.vote.toUpperCase()}
                       </p>
                     </div>
                   ))}
@@ -292,25 +292,25 @@ export default function ComparativaContent() {
                       <div className="flex flex-col sm:flex-row sm:justify-between mt-1 text-sm">
                         <p
                           className={`${
-                            project.votes[selectedSenator1] === "SI"
+                            project.votes[selectedSenator1] === "si"
                               ? "text-green-400"
-                              : project.votes[selectedSenator1] === "NO"
+                              : project.votes[selectedSenator1] === "no"
                                 ? "text-red-400"
                                 : "text-yellow-400"
                           }`}
                         >
-                          {selectedSenator1}: {project.votes[selectedSenator1]}
+                          {selectedSenator1}: {project.votes[selectedSenator1].toUpperCase()}
                         </p>
                         <p
                           className={`${
-                            project.votes[selectedSenator2] === "SI"
+                            project.votes[selectedSenator2] === "si"
                               ? "text-green-400"
-                              : project.votes[selectedSenator2] === "NO"
+                              : project.votes[selectedSenator2] === "no"
                                 ? "text-red-400"
                                 : "text-yellow-400"
                           }`}
                         >
-                          {selectedSenator2}: {project.votes[selectedSenator2]}
+                          {selectedSenator2}: {project.votes[selectedSenator2].toUpperCase()}
                         </p>
                       </div>
                     </div>

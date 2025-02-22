@@ -2,13 +2,13 @@ import useSWR from "swr"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-interface Voto {
+export interface Voto {
   nombre: string;
   voto: string;
   banca: string;
 }
 
-interface Votacion {
+export interface Votacion {
   actaId: number;
   titulo: string;
   proyecto: string;
