@@ -5,9 +5,10 @@ import { useVotaciones, useSenatorsData } from "../lib/data"
 import type { Votacion, Voto } from "../lib/data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import Avatar from "../components/Avatar"
 import Skeleton from "../components/Skeleton"
-import { Scale } from "lucide-react"
+import { Scale, AlertCircle } from "lucide-react"
 
 type SenatorData = {
   name: string
@@ -127,7 +128,29 @@ export default function ComparativaContent() {
     }
   }, [selectedSenator1, selectedSenator2, votaciones, compareSenators])
 
-  if (isErrorVotaciones || isErrorSenatorsData) return <div>Error al cargar los datos</div>
+  if (isErrorVotaciones || isErrorSenatorsData) {
+    return (
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <div className="bg-red-900/20 p-4 rounded-full mb-6">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-4xl font-bold mb-4">No pudimos cargar los datos</h1>
+          <p className="text-gray-400 max-w-md mb-8">
+            Hubo un problema al cargar los datos para la comparación. Esto puede deberse a problemas de conexión o mantenimiento del servidor.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="secondary"
+            size="lg"
+            className="font-medium"
+          >
+            Intentar nuevamente
+          </Button>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

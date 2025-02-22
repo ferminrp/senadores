@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react"
 import SenadorCard from "../components/SenadorCard"
 import { useVotaciones, useSenatorsData } from "../lib/data"
-import { Search } from "lucide-react"
+import { Search, AlertCircle } from "lucide-react"
 import Skeleton from "../components/Skeleton"
 import type { Senator } from "../types"
 import { PaginationComponent } from "../components/Pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 
 const SENATORS_PER_PAGE = 9
 
@@ -24,8 +25,8 @@ export default function SenadoresContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState<string>("none")
 
-  const { votaciones, isLoading: isLoadingVotaciones } = useVotaciones()
-  const { senatorsData, isLoading: isLoadingSenatorsData } = useSenatorsData()
+  const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
+  const { senatorsData, isLoading: isLoadingSenatorsData, isError: isErrorSenatorsData } = useSenatorsData()
 
   useEffect(() => {
     if (votaciones && senatorsData) {
@@ -107,6 +108,30 @@ export default function SenadoresContent() {
   )
 
   const totalPages = Math.ceil(filteredSenadores.length / SENATORS_PER_PAGE)
+
+  if (isErrorVotaciones || isErrorSenatorsData) {
+    return (
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <div className="bg-red-900/20 p-4 rounded-full mb-6">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-4xl font-bold mb-4">No pudimos cargar los senadores</h1>
+          <p className="text-gray-400 max-w-md mb-8">
+            Hubo un problema al cargar los datos de los senadores. Esto puede deberse a problemas de conexión o mantenimiento del servidor.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="secondary"
+            size="lg"
+            className="font-medium"
+          >
+            Intentar nuevamente
+          </Button>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="container mx-auto px-4 py-8">

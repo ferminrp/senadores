@@ -5,6 +5,8 @@ import VotacionFilter from "../components/VotacionFilter"
 import { useVotaciones } from "../lib/data"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { AlertCircle } from "lucide-react"
 
 export default function VotacionesPageClient() {
   const { votaciones, isLoading, isError } = useVotaciones()
@@ -30,9 +32,22 @@ export default function VotacionesPageClient() {
   if (isError) {
     return (
       <main className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Error</h1>
-          <p className="text-gray-400">No se pudieron cargar las votaciones</p>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <div className="bg-red-900/20 p-4 rounded-full mb-6">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-4xl font-bold mb-4">No pudimos cargar las votaciones</h1>
+          <p className="text-gray-400 max-w-md mb-8">
+            Hubo un problema al cargar las votaciones del Senado. Esto puede deberse a problemas de conexión o mantenimiento del servidor.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="secondary"
+            size="lg"
+            className="font-medium"
+          >
+            Intentar nuevamente
+          </Button>
         </div>
       </main>
     )
