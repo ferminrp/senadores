@@ -11,11 +11,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const SENATORS_PER_PAGE = 9
 
+type SortOption = {
+  value: string
+  label: string
+  sortFn: (a: Senator, b: Senator) => number
+}
+
 export default function SenadoresContent() {
   const [senadores, setSenadores] = useState<Senator[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedParty, setSelectedParty] = useState<string>("TODOS")
   const [currentPage, setCurrentPage] = useState(1)
+  const [sortBy, setSortBy] = useState<string>("none")
 
   const { votaciones, isLoading: isLoadingVotaciones } = useVotaciones()
   const { senatorsData, isLoading: isLoadingSenatorsData } = useSenatorsData()
@@ -36,11 +43,63 @@ export default function SenadoresContent() {
     )
   ).sort()
 
-  const filteredSenadores = senadores.filter((senador) => {
-    const matchesSearch = senador.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesParty = selectedParty === "TODOS" || senador.party === selectedParty
-    return matchesSearch && matchesParty
-  })
+  const sortOptions: SortOption[] = [
+    {
+      value: "none",
+      label: "Sin ordenar",
+      sortFn: () => 0
+    },
+    {
+      value: "mostVotes",
+      label: "Mayor cantidad de votos",
+      sortFn: (a, b) => b.totalVotes - a.totalVotes
+    },
+    {
+      value: "leastVotes",
+      label: "Menor cantidad de votos",
+      sortFn: (a, b) => a.totalVotes - b.totalVotes
+    },
+    {
+      value: "mostPositive",
+      label: "Mayor cantidad de votos positivos",
+      sortFn: (a, b) => b.affirmativeVotes - a.affirmativeVotes
+    },
+    {
+      value: "leastPositive",
+      label: "Menor cantidad de votos positivos",
+      sortFn: (a, b) => a.affirmativeVotes - b.affirmativeVotes
+    },
+    {
+      value: "mostNegative",
+      label: "Mayor cantidad de votos negativos",
+      sortFn: (a, b) => b.negativeVotes - a.negativeVotes
+    },
+    {
+      value: "leastNegative",
+      label: "Menor cantidad de votos negativos",
+      sortFn: (a, b) => a.negativeVotes - b.negativeVotes
+    },
+    {
+      value: "mostAbstentions",
+      label: "Mayor cantidad de abstenciones",
+      sortFn: (a, b) => (b.totalVotes - b.affirmativeVotes - b.negativeVotes) - 
+                        (a.totalVotes - a.affirmativeVotes - a.negativeVotes)
+    },
+    {
+      value: "leastAbstentions",
+      label: "Menor cantidad de abstenciones",
+      sortFn: (a, b) => (a.totalVotes - a.affirmativeVotes - a.negativeVotes) - 
+                        (b.totalVotes - b.affirmativeVotes - b.negativeVotes)
+    }
+  ]
+
+  const filteredSenadores = senadores
+    .filter((senador) => {
+      const matchesSearch = senador.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesParty = selectedParty === "TODOS" || senador.party === selectedParty
+      return matchesSearch && matchesParty
+    })
+    .sort(sortOptions.find(option => option.value === sortBy)?.sortFn || (() => 0))
 
   const paginatedSenadores = filteredSenadores.slice(
     (currentPage - 1) * SENATORS_PER_PAGE,
@@ -63,19 +122,33 @@ export default function SenadoresContent() {
           />
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
-        <Select value={selectedParty} onValueChange={setSelectedParty}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Filtrar por partido" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="TODOS">Todos los partidos</SelectItem>
-            {uniqueParties.map((party) => (
-              <SelectItem key={party} value={party}>
-                {party}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Select value={selectedParty} onValueChange={setSelectedParty}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filtrar por partido" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TODOS">Todos los partidos</SelectItem>
+              {uniqueParties.map((party) => (
+                <SelectItem key={party} value={party}>
+                  {party}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar por..." />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoadingVotaciones || isLoadingSenatorsData
