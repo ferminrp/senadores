@@ -5,9 +5,10 @@ import Link from "next/link"
 import { useVotaciones, useSenatorsData } from "../../lib/data"
 import Avatar from "../../components/Avatar"
 import Skeleton from "../../components/Skeleton"
-import { MapPin, Mail, Phone, Twitter, Instagram, BookOpenText, AlertCircle } from "lucide-react"
+import { MapPin, Mail, Phone, Twitter, Instagram, BookOpenText, AlertCircle, UserCheck, UserX } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 function truncateText(text: string, maxLength: number = 32) {
   return text.length > maxLength ? text.substring(0, maxLength - 3) + "..." : text
@@ -35,12 +36,15 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
   const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
   const { senatorsData, isLoading: isLoadingSenatorsData, isError: isErrorSenatorsData } = useSenatorsData()
   const [votes, setVotes] = useState<any[]>([])
+  const [filteredVotes, setFilteredVotes] = useState<any[]>([])
+  const [voteFilter, setVoteFilter] = useState<string>("todos")
   const [senatorInfo, setSenatorInfo] = useState<any>(null)
 
   useEffect(() => {
     if (votaciones) {
       const senadorVotes = getSenadorVotes(decodeURIComponent(name), votaciones)
       setVotes(senadorVotes)
+      setFilteredVotes(senadorVotes)
     }
     if (senatorsData) {
       const info = senatorsData.find((s: any) => s.nombre === decodeURIComponent(name))
@@ -58,6 +62,16 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
       }
     }
   }, [votaciones, senatorsData, name])
+
+  useEffect(() => {
+    if (voteFilter === "todos") {
+      setFilteredVotes(votes)
+    } else if (voteFilter === "ausente") {
+      setFilteredVotes(votes.filter((vote) => !["si", "no", "abstencion"].includes(vote.vote.toLowerCase())))
+    } else {
+      setFilteredVotes(votes.filter((vote) => vote.vote.toLowerCase() === voteFilter))
+    }
+  }, [voteFilter, votes])
 
   if (isErrorVotaciones || isErrorSenatorsData) {
     return (
@@ -112,10 +126,12 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
   const affirmativeVotes = votes.filter((v: any) => v.vote.toLowerCase() === "si").length
   const negativeVotes = votes.filter((v: any) => v.vote.toLowerCase() === "no").length
   const abstentions = votes.filter((v: any) => v.vote.toLowerCase() === "abstencion").length
+  const absentVotes = votes.filter((v: any) => !["si", "no", "abstencion"].includes(v.vote.toLowerCase())).length
 
   const affirmativePercentage = ((affirmativeVotes / totalVotes) * 100).toFixed(2)
   const negativePercentage = ((negativeVotes / totalVotes) * 100).toFixed(2)
   const abstentionPercentage = ((abstentions / totalVotes) * 100).toFixed(2)
+  const attendancePercentage = (((totalVotes - absentVotes) / totalVotes) * 100).toFixed(2)
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -236,12 +252,26 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
 
         {/* Historial de Votos */}
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-4">
             <CardTitle>Historial de votos</CardTitle>
+            <div className="w-full sm:w-[200px]">
+              <Select value={voteFilter} onValueChange={setVoteFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por voto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los votos</SelectItem>
+                  <SelectItem value="si">Afirmativos</SelectItem>
+                  <SelectItem value="no">Negativos</SelectItem>
+                  <SelectItem value="abstencion">Abstenciones</SelectItem>
+                  <SelectItem value="ausente">Ausentes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {votes.map((vote: any) => {
+              {filteredVotes.map((vote: any) => {
                 const voteType = vote.vote.toLowerCase();
                 const getVoteStyles = () => {
                   switch (voteType) {
@@ -307,6 +337,53 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
                   </Link>
                 );
               })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Presentismo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Presentismo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center space-y-6">
+              <div className="relative w-48 h-48">
+                <div className="w-full h-full rounded-full bg-gray-700 absolute" />
+                <div 
+                  className="w-full h-full rounded-full absolute"
+                  style={{
+                    background: `conic-gradient(#22c55e 0% ${attendancePercentage}%, #ef4444 ${attendancePercentage}% 100%)`,
+                    transform: 'rotate(-90deg)'
+                  }}
+                />
+                <div className="absolute inset-4 rounded-full bg-background flex items-center justify-center flex-col">
+                  <span className="text-4xl font-bold">{attendancePercentage}%</span>
+                  <span className="text-sm text-gray-400">Presentismo</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 w-full max-w-md">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-green-900/20 text-green-400">
+                    <UserCheck size={24} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-400">{totalVotes - absentVotes}</p>
+                    <p className="text-sm text-gray-400">Votaciones presente</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-full bg-red-900/20 text-red-400">
+                    <UserX size={24} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-red-400">{absentVotes}</p>
+                    <p className="text-sm text-gray-400">Votaciones ausente</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
