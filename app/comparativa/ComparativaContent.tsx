@@ -23,11 +23,14 @@ type SenatorData = {
 type Senator = {
   name: string
   imgUrl: string
+  party: string
+  totalVotes: number
 }
 
 type Votacion = {
   act_id: string
   motion_number: string
+  project_title: string
   votes: { name: string; vote: string }[]
 }
 
@@ -35,8 +38,8 @@ type VoteComparison = {
   totalVotes: number
   matchingVotes: number
   matchPercentage: number
-  matchingProjects: { id: string; motionNumber: string; vote: string }[]
-  differingProjects: { id: string; motionNumber: string; votes: { [key: string]: string } }[]
+  matchingProjects: { id: string; motionNumber: string; projectTitle: string; vote: string }[]
+  differingProjects: { id: string; motionNumber: string; projectTitle: string; votes: { [key: string]: string } }[]
 }
 
 export default function ComparativaContent() {
@@ -48,15 +51,33 @@ export default function ComparativaContent() {
   const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
   const { senatorsData, isLoading: isLoadingSenatorsData, isError: isErrorSenatorsData } = useSenatorsData()
 
+  const truncateText = (text: string, maxLength: number = 32) => {
+    return text.length > maxLength ? text.substring(0, maxLength - 3) + "..." : text
+  }
+
   useEffect(() => {
-    if (senatorsData) {
+    if (senatorsData && votaciones) {
+      const senatorVoteCounts: { [key: string]: number } = {}
+      
+      // Count total votes per senator
+      votaciones.forEach((votacion: Votacion) => {
+        votacion.votes.forEach((vote) => {
+          if (!senatorVoteCounts[vote.name]) {
+            senatorVoteCounts[vote.name] = 0
+          }
+          senatorVoteCounts[vote.name]++
+        })
+      })
+
       const senatorsList = senatorsData.map((senator: SenatorData) => ({
         name: senator.name,
-        imgUrl: senator.img
+        imgUrl: senator.img,
+        party: truncateText(senator.party || "Sin partido"),
+        totalVotes: senatorVoteCounts[senator.name] || 0
       }))
       setSenators(senatorsList)
     }
-  }, [senatorsData])
+  }, [senatorsData, votaciones])
 
   useEffect(() => {
     if (selectedSenator1 && selectedSenator2 && votaciones) {
@@ -81,12 +102,14 @@ export default function ComparativaContent() {
           matchingProjects.push({
             id: votacion.act_id,
             motionNumber: votacion.motion_number,
+            projectTitle: votacion.project_title,
             vote: vote1,
           })
         } else {
           differingProjects.push({
             id: votacion.act_id,
             motionNumber: votacion.motion_number,
+            projectTitle: votacion.project_title,
             votes: { [selectedSenator1]: vote1, [selectedSenator2]: vote2 },
           })
         }
@@ -117,14 +140,35 @@ export default function ComparativaContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select onValueChange={setSelectedSenator1} value={selectedSenator1}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el primer senador" />
+                  <SelectValue placeholder="Selecciona el primer senador">
+                    {selectedSenator1 && (
+                      <div className="flex items-center">
+                        <Avatar
+                          name={selectedSenator1}
+                          imgUrl={senators.find(s => s.name === selectedSenator1)?.imgUrl}
+                          size={24}
+                        />
+                        <div className="ml-2 text-left">
+                          <div>{selectedSenator1}</div>
+                          <div className="text-sm text-gray-400">
+                            {senators.find(s => s.name === selectedSenator1)?.party} • {senators.find(s => s.name === selectedSenator1)?.totalVotes} votos
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {senators.map((senator) => (
                     <SelectItem key={senator.name} value={senator.name}>
                       <div className="flex items-center">
                         <Avatar name={senator.name} imgUrl={senator.imgUrl} size={24} />
-                        <span className="ml-2">{senator.name}</span>
+                        <div className="ml-2">
+                          <div>{senator.name}</div>
+                          <div className="text-sm text-gray-400">
+                            {senator.party} • {senator.totalVotes} votos
+                          </div>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -132,14 +176,35 @@ export default function ComparativaContent() {
               </Select>
               <Select onValueChange={setSelectedSenator2} value={selectedSenator2}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el segundo senador" />
+                  <SelectValue placeholder="Selecciona el segundo senador">
+                    {selectedSenator2 && (
+                      <div className="flex items-center">
+                        <Avatar
+                          name={selectedSenator2}
+                          imgUrl={senators.find(s => s.name === selectedSenator2)?.imgUrl}
+                          size={24}
+                        />
+                        <div className="ml-2 text-left">
+                          <div>{selectedSenator2}</div>
+                          <div className="text-sm text-gray-400">
+                            {senators.find(s => s.name === selectedSenator2)?.party} • {senators.find(s => s.name === selectedSenator2)?.totalVotes} votos
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {senators.map((senator) => (
                     <SelectItem key={senator.name} value={senator.name}>
                       <div className="flex items-center">
                         <Avatar name={senator.name} imgUrl={senator.imgUrl} size={24} />
-                        <span className="ml-2">{senator.name}</span>
+                        <div className="ml-2">
+                          <div>{senator.name}</div>
+                          <div className="text-sm text-gray-400">
+                            {senator.party} • {senator.totalVotes} votos
+                          </div>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -193,7 +258,9 @@ export default function ComparativaContent() {
                 <div className="space-y-2">
                   {comparison.matchingProjects.map((project) => (
                     <div key={project.id} className="p-3 bg-gray-800 rounded-lg">
-                      <p className="font-medium">Moción {project.motionNumber || "Sin número"}</p>
+                      <p className="font-medium truncate" title={project.projectTitle}>
+                        {project.projectTitle || "Sin título"}
+                      </p>
                       <p
                         className={`text-sm ${
                           project.vote === "SI"
@@ -219,7 +286,9 @@ export default function ComparativaContent() {
                 <div className="space-y-2">
                   {comparison.differingProjects.map((project) => (
                     <div key={project.id} className="p-3 bg-gray-800 rounded-lg">
-                      <p className="font-medium">Moción {project.motionNumber || "Sin número"}</p>
+                      <p className="font-medium truncate" title={project.projectTitle}>
+                        {project.projectTitle || "Sin título"}
+                      </p>
                       <div className="flex flex-col sm:flex-row sm:justify-between mt-1 text-sm">
                         <p
                           className={`${
