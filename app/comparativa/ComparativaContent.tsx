@@ -8,9 +8,27 @@ import Avatar from "../components/Avatar"
 import Skeleton from "../components/Skeleton"
 import { Scale } from "lucide-react"
 
+type SenatorData = {
+  name: string
+  img: string
+  party?: string
+  wikipedia_url?: string
+  province?: string
+  email?: string
+  telefono?: string
+  twitter?: string
+  instagram?: string
+}
+
 type Senator = {
   name: string
-  imgUrl?: string
+  imgUrl: string
+}
+
+type Votacion = {
+  act_id: string
+  motion_number: string
+  votes: { name: string; vote: string }[]
 }
 
 type VoteComparison = {
@@ -32,9 +50,9 @@ export default function ComparativaContent() {
 
   useEffect(() => {
     if (senatorsData) {
-      const senatorsList = Object.keys(senatorsData).map((name) => ({
-        name,
-        imgUrl: senatorsData[name],
+      const senatorsList = senatorsData.map((senator: SenatorData) => ({
+        name: senator.name,
+        imgUrl: senator.img
       }))
       setSenators(senatorsList)
     }
@@ -52,9 +70,9 @@ export default function ComparativaContent() {
     const matchingProjects: VoteComparison["matchingProjects"] = []
     const differingProjects: VoteComparison["differingProjects"] = []
 
-    votaciones.forEach((votacion) => {
-      const vote1 = votacion.votes.find((v: any) => v.name === selectedSenator1)?.vote
-      const vote2 = votacion.votes.find((v: any) => v.name === selectedSenator2)?.vote
+    votaciones.forEach((votacion: Votacion) => {
+      const vote1 = votacion.votes.find((v) => v.name === selectedSenator1)?.vote
+      const vote2 = votacion.votes.find((v) => v.name === selectedSenator2)?.vote
 
       if (vote1 && vote2) {
         totalVotes++

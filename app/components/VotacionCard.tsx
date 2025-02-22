@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import ProgressBar from "./ProgressBar"
+import { Badge } from "@/components/ui/badge"
 
 type VotacionCardProps = {
   id: string
@@ -10,6 +11,7 @@ type VotacionCardProps = {
   affirmative: number
   negative: number
   abstentions: number
+  result: string
 }
 
 export default function VotacionCard({
@@ -19,18 +21,33 @@ export default function VotacionCard({
   affirmative,
   negative,
   abstentions,
+  result,
 }: VotacionCardProps) {
   const total = affirmative + negative + abstentions
   const affirmativePercentage = ((affirmative / total) * 100).toFixed(2)
   const negativePercentage = ((negative / total) * 100).toFixed(2)
   const abstentionsPercentage = ((abstentions / total) * 100).toFixed(2)
 
+  const getBadgeVariant = (result: string) => {
+    switch (result) {
+      case "AFIRMATIVA":
+        return "default"
+      case "NEGATIVA":
+        return "destructive"
+      default:
+        return "secondary"
+    }
+  }
+
   return (
     <Link
       href={`/votaciones/${id}`}
       className="block p-6 bg-gray-800 rounded-lg shadow-md hover:bg-gray-700 transition-colors"
     >
-      <h2 className="text-2xl font-bold mb-2">Moción: {motionNumber || "Sin número"}</h2>
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-2xl font-bold">Moción: {motionNumber || "Sin número"}</h2>
+        <Badge variant={getBadgeVariant(result)} className="text-sm">{result}</Badge>
+      </div>
       <p className="text-gray-400 mb-4">Fecha: {date}</p>
       <ProgressBar affirmative={affirmative} negative={negative} abstentions={abstentions} />
       <div className="flex justify-between text-sm mt-4">

@@ -24,6 +24,7 @@ export default function VotacionesContent() {
                 affirmative={votacion.affirmative}
                 negative={votacion.negative}
                 abstentions={votacion.abstentions}
+                result={votacion.result}
               />
             ))}
       </div>

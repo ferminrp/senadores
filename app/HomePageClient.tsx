@@ -1,20 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Hero from "./components/Hero"
 import VotacionCard from "./components/VotacionCard"
-import { getVotaciones } from "./lib/data"
+import { useVotaciones } from "./lib/data"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function HomePageClient() {
-  const [votaciones, setVotaciones] = useState<any[]>([])
+  const { votaciones, isLoading, isError } = useVotaciones()
 
-  useEffect(() => {
-    const fetchVotaciones = async () => {
-      const data = await getVotaciones()
-      setVotaciones(data)
-    }
-    fetchVotaciones()
-  }, [])
+  if (isError) return <div>Error al cargar las votaciones</div>
 
   return (
     <main className="min-h-screen">
@@ -24,17 +18,20 @@ export default function HomePageClient() {
           Últimas Votaciones
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {votaciones.slice(0, 9).map((votacion: any) => (
-            <VotacionCard
-              key={votacion.act_id}
-              id={votacion.act_id}
-              motionNumber={votacion.motion_number}
-              date={votacion.date}
-              affirmative={votacion.affirmative}
-              negative={votacion.negative}
-              abstentions={votacion.abstentions}
-            />
-          ))}
+          {isLoading
+            ? Array.from({ length: 9 }).map((_, index) => <Skeleton key={index} className="h-48" />)
+            : votaciones?.slice(0, 9).map((votacion: any) => (
+                <VotacionCard
+                  key={votacion.act_id}
+                  id={votacion.act_id}
+                  motionNumber={votacion.motion_number}
+                  date={votacion.date}
+                  affirmative={votacion.affirmative}
+                  negative={votacion.negative}
+                  abstentions={votacion.abstentions}
+                  result={votacion.result}
+                />
+              ))}
         </div>
         <div className="text-center mt-12">
           <a

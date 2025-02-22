@@ -5,6 +5,7 @@ import Avatar from "../../components/Avatar"
 import { useVotaciones, useSenatorsData } from "../../lib/data"
 import { Armchair, CheckCircle2, XCircle, CircleDot, Search } from "lucide-react"
 import Skeleton from "../../components/Skeleton"
+import { Badge } from "@/components/ui/badge"
 
 export default function VotacionDetalleContent({ id }: { id: string }) {
   const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
@@ -14,9 +15,21 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
   useEffect(() => {
     if (votaciones) {
       const votacionData = votaciones.find((v: any) => v.act_id.toString() === id)
+      console.log('Total votes in votacion:', votacionData?.votes?.length)
       setVotacion(votacionData)
     }
   }, [votaciones, id])
+
+  const getBadgeVariant = (result: string) => {
+    switch (result) {
+      case "AFIRMATIVA":
+        return "default"
+      case "NEGATIVA":
+        return "destructive"
+      default:
+        return "secondary"
+    }
+  }
 
   if (isErrorVotaciones || isErrorSenatorsData) return <div>Error al cargar los datos</div>
   if (isLoadingVotaciones || isLoadingSenatorsData) return <Skeleton className="h-96" />
@@ -26,7 +39,10 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8">Detalle de Votación</h1>
       <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-2xl font-bold mb-4">Moción: {votacion.motion_number || "Sin número"}</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Moción: {votacion.motion_number || "Sin número"}</h2>
+          <Badge variant={getBadgeVariant(votacion.result)} className="text-base">{votacion.result}</Badge>
+        </div>
         <p className="text-gray-400 mb-2">Fecha: {votacion.date}</p>
         <p className="text-gray-400 mb-2">Tipo de quórum: {votacion.quorum_type}</p>
         <p className="text-gray-400 mb-4">Mayoría requerida: {votacion.majority_required}</p>
@@ -81,8 +97,10 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
 
 function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any }) {
   const [searchTerm, setSearchTerm] = useState("")
+  console.log('Votes received in SearchBar:', votes?.length)
 
   const filteredVotes = votes.filter((vote) => vote.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  console.log('Filtered votes:', filteredVotes?.length)
 
   return (
     <>
