@@ -42,12 +42,6 @@ export default function Hero() {
             >
               Ver Votaciones
             </Link>
-            <Link
-              href="/senadores"
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 shadow-lg hover:shadow-xl"
-            >
-              Ver Senadores
-            </Link>
           </div>
         </div>
       </div>

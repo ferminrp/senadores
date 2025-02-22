@@ -13,7 +13,7 @@ export type Senator = {
   instagram?: string
 }
 
-export type Votacion = {
+export interface Votacion {
   act_id: string
   motion_number: string
   date: string
@@ -25,4 +25,3 @@ export type Votacion = {
     vote: string
   }[]
 }
-
