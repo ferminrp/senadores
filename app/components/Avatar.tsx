@@ -3,19 +3,22 @@
 import Image from "next/image"
 
 type AvatarProps = {
-  name: string
+  name?: string
   imgUrl?: string
   size?: number
 }
 
 export default function Avatar({ name, imgUrl, size = 40 }: AvatarProps) {
   const initials = name
-    .split(",")[0]
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
+    ? name
+        .split(",")[0]
+        .split(" ")
+        .filter(word => word.length > 0)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?"
 
   if (imgUrl) {
     return (
@@ -25,7 +28,7 @@ export default function Avatar({ name, imgUrl, size = 40 }: AvatarProps) {
       >
         <Image
           src={imgUrl || "/placeholder.svg"}
-          alt={name}
+          alt={name || "Avatar"}
           className="object-cover"
           fill
           sizes={`${size}px`}

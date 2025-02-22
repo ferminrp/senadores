@@ -9,6 +9,10 @@ import { MapPin, Mail, Phone, Twitter, Instagram, BookOpenText, AlertCircle } fr
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
+function truncateText(text: string, maxLength: number = 32) {
+  return text.length > maxLength ? text.substring(0, maxLength - 3) + "..." : text
+}
+
 function getSenadorVotes(name: string, votaciones: any[]) {
   return votaciones
     .map((votacion: any) => {
@@ -17,6 +21,7 @@ function getSenadorVotes(name: string, votaciones: any[]) {
         return {
           actId: votacion.actaId,
           motionNumber: votacion.proyecto,
+          title: votacion.titulo,
           date: votacion.fecha,
           vote: vote.voto,
         }
@@ -38,8 +43,19 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
       setVotes(senadorVotes)
     }
     if (senatorsData) {
-      const info = senatorsData.find((s: any) => s.name === decodeURIComponent(name))
-      setSenatorInfo(info)
+      const info = senatorsData.find((s: any) => s.nombre === decodeURIComponent(name))
+      if (info) {
+        setSenatorInfo({
+          name: info.nombre,
+          img: info.foto,
+          party: info.partido,
+          province: info.provincia,
+          email: info.email,
+          telefono: info.telefono,
+          twitter: info.redes?.find((red: string) => red.includes('twitter.com')),
+          instagram: info.redes?.find((red: string) => red.includes('instagram.com'))
+        })
+      }
     }
   }, [votaciones, senatorsData, name])
 
@@ -225,23 +241,72 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {votes.map((vote: any) => (
-                <Link
-                  href={`/votaciones/${vote.actId}`}
-                  key={vote.actId}
-                  className="block bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  <p className="font-bold">Moción: {vote.motionNumber || "Sin número"}</p>
-                  <p className="text-gray-400">Fecha: {vote.date}</p>
-                  <p
-                    className={
-                      vote.vote === "SI" ? "text-green-400" : vote.vote === "NO" ? "text-red-400" : "text-yellow-400"
-                    }
+              {votes.map((vote: any) => {
+                const voteType = vote.vote.toLowerCase();
+                const getVoteStyles = () => {
+                  switch (voteType) {
+                    case "si":
+                      return {
+                        bg: "bg-green-900/20",
+                        border: "border-green-500/20",
+                        text: "text-green-400",
+                        hover: "hover:bg-green-900/30 hover:border-green-500/30"
+                      };
+                    case "no":
+                      return {
+                        bg: "bg-red-900/20",
+                        border: "border-red-500/20",
+                        text: "text-red-400",
+                        hover: "hover:bg-red-900/30 hover:border-red-500/30"
+                      };
+                    case "abstencion":
+                      return {
+                        bg: "bg-yellow-900/20",
+                        border: "border-yellow-500/20",
+                        text: "text-yellow-400",
+                        hover: "hover:bg-yellow-900/30 hover:border-yellow-500/30"
+                      };
+                    default:
+                      return {
+                        bg: "bg-gray-800/50",
+                        border: "border-gray-700",
+                        text: "text-gray-400",
+                        hover: "hover:bg-gray-800/70 hover:border-gray-600"
+                      };
+                  }
+                };
+
+                const styles = getVoteStyles();
+
+                return (
+                  <Link
+                    href={`/votaciones/${vote.actId}`}
+                    key={vote.actId}
+                    className={`block p-4 rounded-xl border transition-all duration-200 ${styles.bg} ${styles.border} ${styles.hover}`}
                   >
-                    Voto: {vote.vote}
-                  </p>
-                </Link>
-              ))}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium mb-1 truncate" title={vote.title || vote.motionNumber || "Sin título"}>
+                          {truncateText(vote.title || vote.motionNumber || "Sin título", 60)}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {new Date(vote.date).toLocaleDateString('es-AR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${styles.bg} ${styles.text} border ${styles.border}`}>
+                        {voteType === "si" && "Afirmativo"}
+                        {voteType === "no" && "Negativo"}
+                        {voteType === "abstencion" && "Abstención"}
+                        {!["si", "no", "abstencion"].includes(voteType) && "Ausente"}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

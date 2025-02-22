@@ -29,6 +29,16 @@ export interface Votacion {
   observaciones: string[];
 }
 
+export interface Senator {
+  foto: string;
+  nombre: string;
+  provincia: string;
+  partido: string;
+  email: string;
+  telefono: string;
+  redes: string[];
+}
+
 export function useVotaciones() {
   const { data, error } = useSWR<Votacion[]>(
     "https://api.argentinadatos.com/v1/senado/actas/",
@@ -42,12 +52,12 @@ export function useVotaciones() {
 }
 
 export function useSenatorsData() {
-  const { data, error } = useSWR(
-    "https://raw.githubusercontent.com/ferminrp/arg-senate-data/refs/heads/main/senators.json",
+  const { data, error } = useSWR<Senator[]>(
+    "https://api.argentinadatos.com/v1/senado/senadores/",
     fetcher,
   )
   return {
-    senatorsData: data, // Return the data as-is, without transforming it
+    senatorsData: data,
     isLoading: !error && !data,
     isError: error,
   }

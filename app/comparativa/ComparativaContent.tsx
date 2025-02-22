@@ -11,22 +11,20 @@ import Skeleton from "../components/Skeleton"
 import { Scale, AlertCircle } from "lucide-react"
 
 type SenatorData = {
-  name: string
-  img: string
-  party?: string
-  wikipedia_url?: string
-  province?: string
-  email?: string
-  telefono?: string
-  twitter?: string
-  instagram?: string
+  nombre: string;
+  foto: string;
+  partido: string;
+  provincia: string;
+  email: string;
+  telefono: string;
+  redes: string[];
 }
 
 type Senator = {
-  name: string
-  imgUrl: string
-  party: string
-  totalVotes: number
+  name: string;
+  imgUrl: string;
+  party: string;
+  totalVotes: number;
 }
 
 type VoteComparison = {
@@ -68,10 +66,10 @@ export default function ComparativaContent() {
     }
 
     const senatorsList = senatorsData.map((senator: SenatorData) => ({
-      name: senator.name,
-      imgUrl: senator.img,
-      party: truncateText(senator.party || "Sin partido"),
-      totalVotes: senatorVoteCounts[senator.name] || 0
+      name: senator.nombre,
+      imgUrl: senator.foto,
+      party: truncateText(senator.partido || "Sin partido"),
+      totalVotes: senatorVoteCounts[senator.nombre] || 0
     }))
     setSenators(senatorsList)
   }, [senatorsData, votaciones])
@@ -84,10 +82,11 @@ export default function ComparativaContent() {
     const differingProjects: { id: string; motionNumber: string; projectTitle: string; votes: { [key: string]: string } }[] = [];
 
     for (const votacion of votaciones) {
-      const vote1 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator1)?.voto;
-      const vote2 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator2)?.voto;
+      const vote1 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator1)?.voto || "ausente";
+      const vote2 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator2)?.voto || "ausente";
 
-      if (vote1 && vote2) {
+      // Solo comparamos si al menos uno de los senadores votó
+      if (vote1 !== "ausente" || vote2 !== "ausente") {
         if (vote1 === vote2) {
           matchingVotes++;
           matchingProjects.push({
@@ -322,7 +321,7 @@ export default function ComparativaContent() {
                                 : "text-yellow-400"
                           }`}
                         >
-                          {selectedSenator1}: {project.votes[selectedSenator1].toUpperCase()}
+                          {selectedSenator1}: {(project.votes[selectedSenator1] || "AUSENTE").toUpperCase()}
                         </p>
                         <p
                           className={`${
@@ -333,7 +332,7 @@ export default function ComparativaContent() {
                                 : "text-yellow-400"
                           }`}
                         >
-                          {selectedSenator2}: {project.votes[selectedSenator2].toUpperCase()}
+                          {selectedSenator2}: {(project.votes[selectedSenator2] || "AUSENTE").toUpperCase()}
                         </p>
                       </div>
                     </div>

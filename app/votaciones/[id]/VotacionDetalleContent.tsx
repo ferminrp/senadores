@@ -16,15 +16,13 @@ import {
 } from "@/components/ui/select"
 
 interface Senator {
-  name: string;
-  img: string;
-  party: string;
-  wikipedia_url: string;
-  province: string;
+  nombre: string;
+  foto: string;
+  partido: string;
+  provincia: string;
   email: string;
-  telefono: string | null;
-  twitter: string;
-  instagram: string;
+  telefono: string;
+  redes: string[];
 }
 
 export default function VotacionDetalleContent({ id }: { id: string }) {
@@ -179,12 +177,12 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
   const [selectedParty, setSelectedParty] = useState<string>("TODOS")
 
   // Get unique parties from senatorsData
-  const uniqueParties = Array.from(new Set(senatorsData.map((senator: Senator) => senator.party))).sort() as string[]
+  const uniqueParties = Array.from(new Set(senatorsData.map((senator: Senator) => senator.partido))).sort() as string[]
 
   const filteredVotes = votes.filter((vote) => {
     const matchesSearch = vote.nombre.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesVote = selectedVote === "TODOS" || vote.voto.toLowerCase() === selectedVote.toLowerCase()
-    const senatorParty = senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.party
+    const senatorParty = senatorsData.find((senator: Senator) => senator.nombre === vote.nombre)?.partido
     const matchesParty = selectedParty === "TODOS" || senatorParty === selectedParty
     return matchesSearch && matchesVote && matchesParty
   })
@@ -242,7 +240,7 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                   <div className="relative">
                     <Avatar 
                       name={vote.nombre} 
-                      imgUrl={senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.img} 
+                      imgUrl={senatorsData.find((senator: Senator) => senator.nombre === vote.nombre)?.foto} 
                       size={56} 
                     />
                     <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center
@@ -264,7 +262,7 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                       {vote.nombre}
                     </h4>
                     <p className="text-sm text-gray-400 truncate mt-0.5">
-                      {senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.party || "Sin partido"}
+                      {senatorsData.find((senator: Senator) => senator.nombre === vote.nombre)?.partido || "Sin partido"}
                     </p>
                     <div className={`inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-medium
                       ${vote.voto.toLowerCase() === "si" 

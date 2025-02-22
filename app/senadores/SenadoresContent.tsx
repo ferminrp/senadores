@@ -208,13 +208,19 @@ function getSenadores(votaciones: any[], senatorsData: any[]): Senator[] {
   votaciones.forEach((votacion: any) => {
     votacion.votos.forEach((vote: any) => {
       if (!senadores[vote.nombre]) {
-        const senatorInfo = senatorsData.find((s) => s.name === vote.nombre) || {}
+        const senatorInfo = senatorsData.find((s) => s.nombre === vote.nombre) || {}
         senadores[vote.nombre] = {
           name: vote.nombre,
           totalVotes: 0,
           affirmativeVotes: 0,
           negativeVotes: 0,
-          ...senatorInfo,
+          img: senatorInfo.foto,
+          party: senatorInfo.partido,
+          province: senatorInfo.provincia,
+          email: senatorInfo.email,
+          telefono: senatorInfo.telefono,
+          twitter: senatorInfo.redes?.find((red: string) => red.includes('twitter.com')),
+          instagram: senatorInfo.redes?.find((red: string) => red.includes('instagram.com'))
         }
       }
       senadores[vote.nombre].totalVotes++
