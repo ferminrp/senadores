@@ -30,6 +30,7 @@ export default function HomeClient() {
                   afirmativos={votacion.afirmativos}
                   negativos={votacion.negativos}
                   abstenciones={votacion.abstenciones}
+                  resultado={votacion.resultado}
                 />
               ))}
         </div>

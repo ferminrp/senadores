@@ -86,6 +86,7 @@ export default function VotacionesPageClient() {
             afirmativos={Number(votacion.afirmativos)}
             negativos={Number(votacion.negativos)}
             abstenciones={Number(votacion.abstenciones)}
+            resultado={votacion.resultado}
           />
         ))}
       </div>

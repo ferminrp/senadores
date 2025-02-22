@@ -18,6 +18,7 @@ type VotacionCardProps = {
   afirmativos: number
   negativos: number
   abstenciones: number
+  resultado: string
 }
 
 export default function VotacionCard({
@@ -28,6 +29,7 @@ export default function VotacionCard({
   afirmativos,
   negativos,
   abstenciones,
+  resultado
 }: VotacionCardProps) {
   // Asegurarse de que los valores sean números
   const affirmativeNum = Number(afirmativos) || 0
@@ -41,10 +43,21 @@ export default function VotacionCard({
   const negativePercentage = total > 0 ? ((negativeNum / total) * 100).toFixed(1) : "0.0"
   const abstentionsPercentage = total > 0 ? ((abstentionsNum / total) * 100).toFixed(1) : "0.0"
 
+  const getCardStyles = () => {
+    switch (resultado?.toUpperCase()) {
+      case "AFIRMATIVA":
+        return "bg-green-900/20 border-2 border-green-900/40"
+      case "NEGATIVA":
+        return "bg-red-900/20 border-2 border-red-900/40"
+      default:
+        return "bg-gray-800 border-2 border-gray-700"
+    }
+  }
+
   return (
     <Link
       href={`/votaciones/${id}`}
-      className="block p-6 bg-gray-800 rounded-lg shadow-md hover:bg-gray-700 transition-colors"
+      className={`block p-6 ${getCardStyles()} rounded-lg shadow-md hover:bg-opacity-90 transition-colors`}
     >
       <div className="flex flex-col gap-2 mb-2">
         <TooltipProvider>
