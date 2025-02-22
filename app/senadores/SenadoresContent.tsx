@@ -7,12 +7,14 @@ import { Search } from "lucide-react"
 import Skeleton from "../components/Skeleton"
 import type { Senator } from "../types"
 import { PaginationComponent } from "../components/Pagination"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const SENATORS_PER_PAGE = 9
 
 export default function SenadoresContent() {
   const [senadores, setSenadores] = useState<Senator[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedParty, setSelectedParty] = useState<string>("TODOS")
   const [currentPage, setCurrentPage] = useState(1)
 
   const { votaciones, isLoading: isLoadingVotaciones } = useVotaciones()
@@ -25,7 +27,20 @@ export default function SenadoresContent() {
     }
   }, [votaciones, senatorsData])
 
-  const filteredSenadores = senadores.filter((senador) => senador.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Get unique parties from senators
+  const uniqueParties = Array.from(
+    new Set(
+      senadores
+        .map(senator => senator.party || "Sin partido")
+        .filter(party => party !== "Sin partido")
+    )
+  ).sort()
+
+  const filteredSenadores = senadores.filter((senador) => {
+    const matchesSearch = senador.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesParty = selectedParty === "TODOS" || senador.party === selectedParty
+    return matchesSearch && matchesParty
+  })
 
   const paginatedSenadores = filteredSenadores.slice(
     (currentPage - 1) * SENATORS_PER_PAGE,
@@ -37,15 +52,30 @@ export default function SenadoresContent() {
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8">Senadores</h1>
-      <div className="relative mb-6">
-        <input
-          type="text"
-          placeholder="Buscar senador..."
-          className="w-full p-2 pl-10 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+      <div className="space-y-4 mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Buscar senador..."
+            className="w-full p-2 pl-10 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+        </div>
+        <Select value={selectedParty} onValueChange={setSelectedParty}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filtrar por partido" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos los partidos</SelectItem>
+            {uniqueParties.map((party) => (
+              <SelectItem key={party} value={party}>
+                {party}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoadingVotaciones || isLoadingSenatorsData
