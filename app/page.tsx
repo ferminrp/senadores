@@ -1,8 +1,8 @@
 "use client"
 
-import HomeContent from "./HomeContent"
+import HomeClient from "./HomeClient"
 
 export default function Home() {
-  return <HomeContent />
+  return <HomeClient />
 }
 
