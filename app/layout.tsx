@@ -13,6 +13,22 @@ export const metadata: Metadata = {
   generator: 'v0.dev',
   icons: {
     icon: '/favicon.ico', 
+  },
+  openGraph: {
+    title: 'Votaciones del Senado Argentino',
+    description: 'Evaluación de proyectos votados en el Senado de la Nación Argentina',
+    images: [{
+      url: '/meta-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Votaciones del Senado Argentino'
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Votaciones del Senado Argentino',
+    description: 'Evaluación de proyectos votados en el Senado de la Nación Argentina',
+    images: ['/meta-image.png'],
   }
 }
 
