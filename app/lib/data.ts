@@ -31,7 +31,7 @@ export interface Votacion {
 
 export function useVotaciones() {
   const { data, error } = useSWR<Votacion[]>(
-    "https://raw.githubusercontent.com/enzonotario/esjs-argentina-datos-api/refs/heads/feature/senado/packages/senado/datos/votaciones.json",
+    "https://api.argentinadatos.com/v1/senado/actas/",
     fetcher,
   )
   return {
