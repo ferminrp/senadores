@@ -120,8 +120,8 @@ function getSenadores(votaciones: any[], senatorsData: any[]): Senator[] {
         }
       }
       senadores[vote.nombre].totalVotes++
-      if (vote.voto === "SI") senadores[vote.nombre].affirmativeVotes++
-      if (vote.voto === "NO") senadores[vote.nombre].negativeVotes++
+      if (vote.voto === "si") senadores[vote.nombre].affirmativeVotes++
+      if (vote.voto === "no") senadores[vote.nombre].negativeVotes++
     })
   })
 

@@ -47,9 +47,9 @@ export default function SenadorDetalleContent({ name }: { name: string }) {
   if (votes.length === 0 || !senatorInfo) return <div>No se encontraron datos para este senador</div>
 
   const totalVotes = votes.length
-  const affirmativeVotes = votes.filter((v: any) => v.vote === "SI").length
-  const negativeVotes = votes.filter((v: any) => v.vote === "NO").length
-  const abstentions = votes.filter((v: any) => v.vote === "ABSTENCION").length
+  const affirmativeVotes = votes.filter((v: any) => v.vote.toLowerCase() === "si").length
+  const negativeVotes = votes.filter((v: any) => v.vote.toLowerCase() === "no").length
+  const abstentions = votes.filter((v: any) => v.vote.toLowerCase() === "abstencion").length
 
   const affirmativePercentage = ((affirmativeVotes / totalVotes) * 100).toFixed(2)
   const negativePercentage = ((negativeVotes / totalVotes) * 100).toFixed(2)
