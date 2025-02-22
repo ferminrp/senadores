@@ -13,6 +13,7 @@ export default function Navigation() {
     ["Votaciones", "/votaciones"],
     ["Senadores", "/senadores"],
     ["Comparativa", "/comparativa"],
+    ["Afinidad", "/afinidad"],
   ]
 
   return (
