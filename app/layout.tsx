@@ -8,26 +8,35 @@ import Footer from "./components/Footer"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Votaciones del Senado Argentino",
-  description: "Evaluación de proyectos votados en el Senado de la Nación Argentina",
+  title: {
+    template: '%s | Senado Argentino',
+    default: 'Senado Argentino'
+  },
+  description: "Portal de transparencia y análisis de votaciones del Senado de la Nación Argentina",
   generator: 'v0.dev',
   icons: {
     icon: '/favicon.ico',
   },
   openGraph: {
-    title: 'Votaciones del Senado Argentino',
-    description: 'Evaluación de proyectos votados en el Senado de la Nación Argentina',
+    title: {
+      template: '%s | Senado Argentino',
+      default: 'Senado Argentino'
+    },
+    description: 'Portal de transparencia y análisis de votaciones del Senado de la Nación Argentina',
     images: [{
       url: '/meta-image.png',
       width: 1200,
       height: 630,
-      alt: 'Votaciones del Senado Argentino'
+      alt: 'Senado Argentino'
     }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Votaciones del Senado Argentino',
-    description: 'Evaluación de proyectos votados en el Senado de la Nación Argentina',
+    title: {
+      template: '%s | Senado Argentino',
+      default: 'Senado Argentino'
+    },
+    description: 'Portal de transparencia y análisis de votaciones del Senado de la Nación Argentina',
     images: ['/meta-image.png'],
   }
 }
