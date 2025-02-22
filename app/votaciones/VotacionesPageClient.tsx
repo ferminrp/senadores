@@ -66,7 +66,7 @@ export default function VotacionesPageClient() {
 
   const filteredVotaciones = selectedResult === "TODOS"
     ? votaciones
-    : votaciones.filter((votacion) => votacion.resultado === selectedResult)
+    : votaciones.filter((votacion) => votacion.resultado.toUpperCase() === selectedResult)
 
   return (
     <main className="container mx-auto px-4 py-8">
