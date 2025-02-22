@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Evaluación de proyectos votados en el Senado de la Nación Argentina",
   generator: 'v0.dev',
   icons: {
-    icon: '/favicon.ico', 
+    icon: '/favicon.ico',
   },
   openGraph: {
     title: 'Votaciones del Senado Argentino',
