@@ -6,6 +6,14 @@ import { useVotaciones, useSenatorsData } from "../../lib/data"
 import { Armchair, CheckCircle2, XCircle, CircleDot, Search } from "lucide-react"
 import Skeleton from "../../components/Skeleton"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface Senator {
   name: string;
@@ -118,7 +126,7 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
 
   const filteredVotes = votes.filter((vote) => {
     const matchesSearch = vote.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesVote = selectedVote === "TODOS" || vote.voto === selectedVote
+    const matchesVote = selectedVote === "TODOS" || vote.voto.toLowerCase() === selectedVote.toLowerCase()
     const senatorParty = senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.party
     const matchesParty = selectedParty === "TODOS" || senatorParty === selectedParty
     return matchesSearch && matchesVote && matchesParty
@@ -138,56 +146,63 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
         
-        <select
-          className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={selectedVote}
-          onChange={(e) => setSelectedVote(e.target.value)}
-        >
-          <option value="TODOS">Todos los votos</option>
-          <option value="SI">Afirmativo</option>
-          <option value="NO">Negativo</option>
-          <option value="ABSTENCION">Abstención</option>
-          <option value="AUSENTE">Ausente</option>
-        </select>
+        <Select defaultValue="TODOS" value={selectedVote} onValueChange={setSelectedVote}>
+          <SelectTrigger className="w-full md:w-[200px]">
+            <SelectValue placeholder="Todos los votos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos los votos</SelectItem>
+            <SelectItem value="si">Afirmativo</SelectItem>
+            <SelectItem value="no">Negativo</SelectItem>
+            <SelectItem value="abstencion">Abstención</SelectItem>
+            <SelectItem value="ausente">Ausente</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={selectedParty}
-          onChange={(e) => setSelectedParty(e.target.value)}
-        >
-          <option value="TODOS">Todos los partidos</option>
-          {uniqueParties.map((party) => (
-            <option key={party} value={party}>{party}</option>
-          ))}
-        </select>
+        <Select defaultValue="TODOS" value={selectedParty} onValueChange={setSelectedParty}>
+          <SelectTrigger className="w-full md:w-[200px]">
+            <SelectValue placeholder="Todos los partidos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos los partidos</SelectItem>
+            {uniqueParties.map((party) => (
+              party ? <SelectItem key={party} value={party}>{party}</SelectItem> : null
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredVotes.length > 0 ? (
           filteredVotes.map((vote: any) => (
-            <div
+            <Link 
+              href={`/senadores/${encodeURIComponent(vote.nombre)}`}
               key={vote.nombre}
-              className="bg-gray-700 p-4 rounded-lg flex items-start gap-4 transition-all duration-300 hover:bg-gray-600"
+              className="block transition-all duration-300 hover:scale-[1.02]"
             >
-              <Avatar 
-                name={vote.nombre} 
-                imgUrl={senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.img} 
-                size={48} 
-              />
-              <div className="min-w-0">
-                <p className="font-bold text-sm truncate">{vote.nombre}</p>
-                <p className="text-gray-400 text-xs truncate">
-                  {senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.party}
-                </p>
-                <p
-                  className={
-                    vote.voto.toLowerCase() === "si" ? "text-green-400" : vote.voto.toLowerCase() === "no" ? "text-red-400" : "text-yellow-400"
-                  }
-                >
-                  Voto: {vote.voto}
-                </p>
+              <div
+                className="bg-gray-700 p-4 rounded-lg flex items-start gap-4 transition-all duration-300 hover:bg-gray-600 cursor-pointer"
+              >
+                <Avatar 
+                  name={vote.nombre} 
+                  imgUrl={senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.img} 
+                  size={48} 
+                />
+                <div className="min-w-0">
+                  <p className="font-bold text-sm truncate">{vote.nombre}</p>
+                  <p className="text-gray-400 text-xs truncate">
+                    {senatorsData.find((senator: Senator) => senator.name === vote.nombre)?.party}
+                  </p>
+                  <p
+                    className={
+                      vote.voto.toLowerCase() === "si" ? "text-green-400" : vote.voto.toLowerCase() === "no" ? "text-red-400" : "text-yellow-400"
+                    }
+                  >
+                    Voto: {vote.voto}
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
           ))
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center p-8 bg-gray-700 rounded-lg">
