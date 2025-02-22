@@ -181,7 +181,7 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                 </p>
                 <p
                   className={
-                    vote.voto === "SI" ? "text-green-400" : vote.voto === "NO" ? "text-red-400" : "text-yellow-400"
+                    vote.voto.toLowerCase() === "si" ? "text-green-400" : vote.voto.toLowerCase() === "no" ? "text-red-400" : "text-yellow-400"
                   }
                 >
                   Voto: {vote.voto}
