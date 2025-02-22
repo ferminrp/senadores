@@ -196,11 +196,11 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
           <input
             type="text"
             placeholder="Buscar senador..."
-            className="w-full px-4 py-3 pl-11 bg-gray-900/30 backdrop-blur-sm text-white rounded-xl border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
+            className="w-full px-4 py-2 pl-11 bg-gray-900/30 backdrop-blur-sm text-white rounded-xl border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 h-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
+          <Search className="absolute left-4 top-3 text-gray-400" size={18} />
         </div>
         
         <Select defaultValue="TODOS" value={selectedVote} onValueChange={setSelectedVote}>
