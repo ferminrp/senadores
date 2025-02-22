@@ -1,8 +1,8 @@
 "use client"
 
-import VotacionesContent from "./VotacionesContent"
+import VotacionesPageClient from "./VotacionesPageClient"
 
 export default function Votaciones() {
-  return <VotacionesContent />
+  return <VotacionesPageClient />
 }
 

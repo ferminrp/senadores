@@ -7,6 +7,18 @@ import { Armchair, CheckCircle2, XCircle, CircleDot, Search } from "lucide-react
 import Skeleton from "../../components/Skeleton"
 import { Badge } from "@/components/ui/badge"
 
+interface Senator {
+  name: string;
+  img: string;
+  party: string;
+  wikipedia_url: string;
+  province: string;
+  email: string;
+  telefono: string | null;
+  twitter: string;
+  instagram: string;
+}
+
 export default function VotacionDetalleContent({ id }: { id: string }) {
   const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
   const { senatorsData, isLoading: isLoadingSenatorsData, isError: isErrorSenatorsData } = useSenatorsData()
@@ -97,42 +109,95 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
 
 function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any }) {
   const [searchTerm, setSearchTerm] = useState("")
-  console.log('Votes received in SearchBar:', votes?.length)
+  const [selectedVote, setSelectedVote] = useState<string>("TODOS")
+  const [selectedParty, setSelectedParty] = useState<string>("TODOS")
 
-  const filteredVotes = votes.filter((vote) => vote.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  console.log('Filtered votes:', filteredVotes?.length)
+  // Get unique parties from senatorsData
+  const uniqueParties = Array.from(new Set(senatorsData.map((senator: Senator) => senator.party))).sort() as string[]
+
+  const filteredVotes = votes.filter((vote) => {
+    const matchesSearch = vote.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesVote = selectedVote === "TODOS" || vote.vote === selectedVote
+    const senatorParty = senatorsData.find((senator: Senator) => senator.name === vote.name)?.party
+    const matchesParty = selectedParty === "TODOS" || senatorParty === selectedParty
+    return matchesSearch && matchesVote && matchesParty
+  })
 
   return (
     <>
-      <div className="relative mb-6">
-        <input
-          type="text"
-          placeholder="Buscar senador..."
-          className="w-full p-2 pl-10 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-grow">
+          <input
+            type="text"
+            placeholder="Buscar senador..."
+            className="w-full p-2 pl-10 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+        </div>
+        
+        <select
+          className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedVote}
+          onChange={(e) => setSelectedVote(e.target.value)}
+        >
+          <option value="TODOS">Todos los votos</option>
+          <option value="SI">Afirmativo</option>
+          <option value="NO">Negativo</option>
+          <option value="ABSTENCION">Abstención</option>
+          <option value="AUSENTE">Ausente</option>
+        </select>
+
+        <select
+          className="p-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedParty}
+          onChange={(e) => setSelectedParty(e.target.value)}
+        >
+          <option value="TODOS">Todos los partidos</option>
+          {uniqueParties.map((party) => (
+            <option key={party} value={party}>{party}</option>
+          ))}
+        </select>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredVotes.map((vote: any) => (
-          <div
-            key={vote.name}
-            className="bg-gray-700 p-4 rounded-lg flex items-start gap-4 transition-all duration-300 hover:bg-gray-600"
-          >
-            <Avatar name={vote.name} imgUrl={senatorsData[vote.name]} size={48} />
-            <div className="min-w-0">
-              <p className="font-bold text-sm truncate">{vote.name}</p>
-              <p
-                className={
-                  vote.vote === "SI" ? "text-green-400" : vote.vote === "NO" ? "text-red-400" : "text-yellow-400"
-                }
-              >
-                Voto: {vote.vote}
-              </p>
+        {filteredVotes.length > 0 ? (
+          filteredVotes.map((vote: any) => (
+            <div
+              key={vote.name}
+              className="bg-gray-700 p-4 rounded-lg flex items-start gap-4 transition-all duration-300 hover:bg-gray-600"
+            >
+              <Avatar 
+                name={vote.name} 
+                imgUrl={senatorsData.find((senator: Senator) => senator.name === vote.name)?.img} 
+                size={48} 
+              />
+              <div className="min-w-0">
+                <p className="font-bold text-sm truncate">{vote.name}</p>
+                <p className="text-gray-400 text-xs truncate">
+                  {senatorsData.find((senator: Senator) => senator.name === vote.name)?.party}
+                </p>
+                <p
+                  className={
+                    vote.vote === "SI" ? "text-green-400" : vote.vote === "NO" ? "text-red-400" : "text-yellow-400"
+                  }
+                >
+                  Voto: {vote.vote}
+                </p>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="col-span-full flex flex-col items-center justify-center p-8 bg-gray-700 rounded-lg">
+            <Search className="text-gray-400 mb-4" size={48} />
+            <h3 className="text-xl font-semibold mb-2">No se encontraron resultados</h3>
+            <p className="text-gray-400 text-center">
+              No hay votos que coincidan con los filtros seleccionados. 
+              Intenta ajustar los criterios de búsqueda.
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </>
   )
