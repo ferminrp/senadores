@@ -27,6 +27,7 @@ export default function HomeContent() {
                     key={votacion.act_id}
                     id={votacion.act_id}
                     motionNumber={votacion.motion_number}
+                    projectTitle={votacion.project_title}
                     date={votacion.date}
                     affirmative={votacion.affirmative}
                     negative={votacion.negative}

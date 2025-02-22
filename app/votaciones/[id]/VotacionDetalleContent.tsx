@@ -52,10 +52,11 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
       <h1 className="text-4xl font-bold mb-8">Detalle de Votación</h1>
       <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Moción: {votacion.motion_number || "Sin número"}</h2>
+          <h2 className="text-2xl font-bold">{votacion.project_title || "Sin título"}</h2>
           <Badge variant={getBadgeVariant(votacion.result)} className="text-base">{votacion.result}</Badge>
         </div>
         <p className="text-gray-400 mb-2">Fecha: {votacion.date}</p>
+        <p className="text-gray-400 mb-2">Descripción: {votacion.description}</p>
         <p className="text-gray-400 mb-2">Tipo de quórum: {votacion.quorum_type}</p>
         <p className="text-gray-400 mb-4">Mayoría requerida: {votacion.majority_required}</p>
       </div>

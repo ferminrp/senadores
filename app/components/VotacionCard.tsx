@@ -3,10 +3,17 @@
 import Link from "next/link"
 import ProgressBar from "./ProgressBar"
 import { Badge } from "@/components/ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 type VotacionCardProps = {
   id: string
   motionNumber: string
+  projectTitle: string
   date: string
   affirmative: number
   negative: number
@@ -17,6 +24,7 @@ type VotacionCardProps = {
 export default function VotacionCard({
   id,
   motionNumber,
+  projectTitle,
   date,
   affirmative,
   negative,
@@ -39,14 +47,27 @@ export default function VotacionCard({
     }
   }
 
+  const truncatedTitle = projectTitle?.length > 50 
+    ? `${projectTitle.substring(0, 50)}...` 
+    : projectTitle || "Sin título"
+
   return (
     <Link
       href={`/votaciones/${id}`}
       className="block p-6 bg-gray-800 rounded-lg shadow-md hover:bg-gray-700 transition-colors"
     >
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-bold">Moción: {motionNumber || "Sin número"}</h2>
-        <Badge variant={getBadgeVariant(result)} className="text-sm">{result}</Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <h2 className="text-2xl font-bold truncate">{truncatedTitle}</h2>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-sm">{projectTitle || "Sin título"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <Badge variant={getBadgeVariant(result)} className="text-sm shrink-0">{result}</Badge>
       </div>
       <p className="text-gray-400 mb-4">Fecha: {date}</p>
       <ProgressBar affirmative={affirmative} negative={negative} abstentions={abstentions} />
