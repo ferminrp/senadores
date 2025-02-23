@@ -5,27 +5,26 @@ import { useVotaciones, useSenatorsData } from "../lib/data"
 import type { Votacion, Voto } from "../lib/data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import Avatar from "../components/Avatar"
 import Skeleton from "../components/Skeleton"
-import { Scale } from "lucide-react"
+import { Scale, AlertCircle } from "lucide-react"
 
 type SenatorData = {
-  name: string
-  img: string
-  party?: string
-  wikipedia_url?: string
-  province?: string
-  email?: string
-  telefono?: string
-  twitter?: string
-  instagram?: string
+  nombre: string;
+  foto: string;
+  partido: string;
+  provincia: string;
+  email: string;
+  telefono: string;
+  redes: string[];
 }
 
 type Senator = {
-  name: string
-  imgUrl: string
-  party: string
-  totalVotes: number
+  name: string;
+  imgUrl: string;
+  party: string;
+  totalVotes: number;
 }
 
 type VoteComparison = {
@@ -67,10 +66,10 @@ export default function ComparativaContent() {
     }
 
     const senatorsList = senatorsData.map((senator: SenatorData) => ({
-      name: senator.name,
-      imgUrl: senator.img,
-      party: truncateText(senator.party || "Sin partido"),
-      totalVotes: senatorVoteCounts[senator.name] || 0
+      name: senator.nombre,
+      imgUrl: senator.foto,
+      party: truncateText(senator.partido || "Sin partido"),
+      totalVotes: senatorVoteCounts[senator.nombre] || 0
     }))
     setSenators(senatorsList)
   }, [senatorsData, votaciones])
@@ -83,10 +82,11 @@ export default function ComparativaContent() {
     const differingProjects: { id: string; motionNumber: string; projectTitle: string; votes: { [key: string]: string } }[] = [];
 
     for (const votacion of votaciones) {
-      const vote1 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator1)?.voto;
-      const vote2 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator2)?.voto;
+      const vote1 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator1)?.voto || "ausente";
+      const vote2 = votacion.votos.find((v: Voto) => v.nombre === selectedSenator2)?.voto || "ausente";
 
-      if (vote1 && vote2) {
+      // Solo comparamos si al menos uno de los senadores votó
+      if (vote1 !== "ausente" || vote2 !== "ausente") {
         if (vote1 === vote2) {
           matchingVotes++;
           matchingProjects.push({
@@ -127,7 +127,29 @@ export default function ComparativaContent() {
     }
   }, [selectedSenator1, selectedSenator2, votaciones, compareSenators])
 
-  if (isErrorVotaciones || isErrorSenatorsData) return <div>Error al cargar los datos</div>
+  if (isErrorVotaciones || isErrorSenatorsData) {
+    return (
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <div className="bg-red-900/20 p-4 rounded-full mb-6">
+            <AlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-4xl font-bold mb-4">No pudimos cargar los datos</h1>
+          <p className="text-gray-400 max-w-md mb-8">
+            Hubo un problema al cargar los datos para la comparación. Esto puede deberse a problemas de conexión o mantenimiento del servidor.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="secondary"
+            size="lg"
+            className="font-medium"
+          >
+            Intentar nuevamente
+          </Button>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -299,7 +321,7 @@ export default function ComparativaContent() {
                                 : "text-yellow-400"
                           }`}
                         >
-                          {selectedSenator1}: {project.votes[selectedSenator1].toUpperCase()}
+                          {selectedSenator1}: {(project.votes[selectedSenator1] || "AUSENTE").toUpperCase()}
                         </p>
                         <p
                           className={`${
@@ -310,7 +332,7 @@ export default function ComparativaContent() {
                                 : "text-yellow-400"
                           }`}
                         >
-                          {selectedSenator2}: {project.votes[selectedSenator2].toUpperCase()}
+                          {selectedSenator2}: {(project.votes[selectedSenator2] || "AUSENTE").toUpperCase()}
                         </p>
                       </div>
                     </div>
