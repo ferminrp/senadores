@@ -23,7 +23,7 @@ export default function SenadoresContent() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedParty, setSelectedParty] = useState<string>("TODOS")
   const [currentPage, setCurrentPage] = useState(1)
-  const [sortBy, setSortBy] = useState<string>("none")
+  const [sortBy, setSortBy] = useState<string>("recentPeriod")
 
   const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
   const { senatorsData, isLoading: isLoadingSenatorsData, isError: isErrorSenatorsData } = useSenatorsData()
@@ -49,6 +49,14 @@ export default function SenadoresContent() {
       value: "none",
       label: "Sin ordenar",
       sortFn: () => 0
+    },
+    {
+      value: "recentPeriod",
+      label: "Período más reciente",
+      sortFn: (a, b) => {
+        if (!a.periodoReal || !b.periodoReal) return 0;
+        return new Date(b.periodoReal.inicio).getTime() - new Date(a.periodoReal.inicio).getTime();
+      }
     },
     {
       value: "mostVotes",
@@ -220,7 +228,8 @@ function getSenadores(votaciones: any[], senatorsData: any[]): Senator[] {
           email: senatorInfo.email,
           telefono: senatorInfo.telefono,
           twitter: senatorInfo.redes?.find((red: string) => red.includes('twitter.com')),
-          instagram: senatorInfo.redes?.find((red: string) => red.includes('instagram.com'))
+          instagram: senatorInfo.redes?.find((red: string) => red.includes('instagram.com')),
+          periodoReal: senatorInfo.periodoReal
         }
       }
       senadores[vote.nombre].totalVotes++
