@@ -67,6 +67,7 @@ export default function RootLayout({
             `,
           }}
         />
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="LquyoZN88/aR4X9qjbh6zQ" async />
       </head>
       <body className={`${inter.className} min-h-screen flex flex-col bg-background text-foreground`}>
         <Navigation />
