@@ -2,9 +2,17 @@ import useSWR from "swr"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
+
+export enum FormaVoto {
+  AFIRMATIVO = "si",
+  NEGATIVO = "no",
+  AUSENTE = "ausente",
+  ABSTENCION = "abstencion",
+}
+
 export interface Voto {
   nombre: string;
-  voto: string;
+  voto: FormaVoto;
   banca: string;
 }
 

@@ -12,6 +12,35 @@ export default function VotacionesPageClient() {
   const { votaciones, isLoading, isError } = useVotaciones()
   const [selectedResult, setSelectedResult] = useState("TODOS")
 
+  // Helper function to parse date string into a consistent format
+  const parseDate = (dateStr: string) => {
+
+    // Try different date formats
+    // If it's DD/MM/YYYY format
+    if (dateStr.includes('/')) {
+      const [day, month, year] = dateStr.split('/')
+      return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`)
+    }
+    
+    // If it's already in YYYY-MM-DD format
+    if (dateStr.includes('-')) {
+      return new Date(dateStr)
+    }
+
+    // If all else fails, return invalid date
+    return new Date(0)
+  }
+
+  // Helper function to sort votaciones by date
+  const sortVotacionesByDate = (votaciones: any[]) => {
+    return [...votaciones].sort((a, b) => {
+      const dateA = parseDate(a.fecha)
+      const dateB = parseDate(b.fecha)
+
+      return dateB.getTime() - dateA.getTime()
+    })
+  }
+
   if (isLoading) {
     return (
       <main className="container mx-auto px-4 py-8">
@@ -65,8 +94,8 @@ export default function VotacionesPageClient() {
   }
 
   const filteredVotaciones = selectedResult === "TODOS"
-    ? votaciones
-    : votaciones.filter((votacion) => votacion.resultado.toUpperCase() === selectedResult)
+    ? sortVotacionesByDate(votaciones)
+    : sortVotacionesByDate(votaciones.filter((votacion) => votacion.resultado.toUpperCase() === selectedResult))
 
   return (
     <main className="container mx-auto px-4 py-8">
