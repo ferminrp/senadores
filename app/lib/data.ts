@@ -45,7 +45,7 @@ export function useVotaciones() {
     fetcher,
   )
   return {
-    votaciones: data,
+    votaciones: data?.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()),
     isLoading: !error && !data,
     isError: error,
   }

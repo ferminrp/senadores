@@ -3,6 +3,7 @@
 import Link from "next/link"
 import ProgressBar from "./ProgressBar"
 import { Badge } from "@/components/ui/badge"
+import { Calendar } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
@@ -43,6 +44,18 @@ export default function VotacionCard({
   const negativePercentage = total > 0 ? ((negativeNum / total) * 100).toFixed(1) : "0.0"
   const abstentionsPercentage = total > 0 ? ((abstentionsNum / total) * 100).toFixed(1) : "0.0"
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }
+    return date.toLocaleDateString('es-AR', options)
+  }
+
   const getCardStyles = () => {
     switch (resultado?.toUpperCase()) {
       case "AFIRMATIVA":
@@ -72,7 +85,10 @@ export default function VotacionCard({
         </TooltipProvider>
         <p className="text-sm text-gray-400">{proyecto}</p>
       </div>
-      <p className="text-gray-400 mb-4">Fecha: {fecha}</p>
+      <div className="flex items-center gap-2 text-gray-400 mb-4">
+        <Calendar size={16} className="text-gray-500" />
+        <span>{formatDate(fecha)}</span>
+      </div>
       <ProgressBar 
         affirmative={affirmativeNum} 
         negative={negativeNum} 

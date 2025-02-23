@@ -4,13 +4,23 @@ import VotacionCard from "../components/VotacionCard"
 import VotacionFilter from "../components/VotacionFilter"
 import { useVotaciones } from "../lib/data"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 
 export default function VotacionesPageClient() {
   const { votaciones, isLoading, isError } = useVotaciones()
   const [selectedResult, setSelectedResult] = useState("TODOS")
+  const [possibleResults, setPossibleResults] = useState<string[]>([])
+
+  useEffect(() => {
+    if (votaciones) {
+      const uniqueResults = Array.from(new Set(votaciones.map(v => v.resultado.toUpperCase())))
+        .filter(result => result && result.trim() !== '')
+        .sort()
+      setPossibleResults(uniqueResults)
+    }
+  }, [votaciones])
 
   if (isLoading) {
     return (
@@ -19,6 +29,7 @@ export default function VotacionesPageClient() {
         <VotacionFilter
           selectedResult={selectedResult}
           onResultChange={setSelectedResult}
+          possibleResults={[]}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 12 }).map((_, index) => (
@@ -74,6 +85,7 @@ export default function VotacionesPageClient() {
       <VotacionFilter
         selectedResult={selectedResult}
         onResultChange={setSelectedResult}
+        possibleResults={possibleResults}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVotaciones.map((votacion) => (
