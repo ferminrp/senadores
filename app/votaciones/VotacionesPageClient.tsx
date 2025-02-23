@@ -11,7 +11,9 @@ import { AlertCircle } from "lucide-react"
 export default function VotacionesPageClient() {
   const { votaciones, isLoading, isError } = useVotaciones()
   const [selectedResult, setSelectedResult] = useState("TODOS")
+  const [selectedYear, setSelectedYear] = useState("TODOS")
   const [possibleResults, setPossibleResults] = useState<string[]>([])
+  const [possibleYears, setPossibleYears] = useState<string[]>([])
 
   useEffect(() => {
     if (votaciones) {
@@ -19,6 +21,10 @@ export default function VotacionesPageClient() {
         .filter(result => result && result.trim() !== '')
         .sort()
       setPossibleResults(uniqueResults)
+
+      const uniqueYears = Array.from(new Set(votaciones.map(v => new Date(v.fecha).getFullYear().toString())))
+        .sort((a, b) => b.localeCompare(a)) // Sort years in descending order
+      setPossibleYears(uniqueYears)
     }
   }, [votaciones])
 
@@ -28,8 +34,11 @@ export default function VotacionesPageClient() {
         <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Todas las Votaciones del Senado</h1>
         <VotacionFilter
           selectedResult={selectedResult}
+          selectedYear={selectedYear}
           onResultChange={setSelectedResult}
+          onYearChange={setSelectedYear}
           possibleResults={[]}
+          possibleYears={[]}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 12 }).map((_, index) => (
@@ -75,17 +84,23 @@ export default function VotacionesPageClient() {
     )
   }
 
-  const filteredVotaciones = selectedResult === "TODOS"
-    ? votaciones
-    : votaciones.filter((votacion) => votacion.resultado.toUpperCase() === selectedResult)
+  const filteredVotaciones = votaciones.filter((votacion) => {
+    const matchesResult = selectedResult === "TODOS" || votacion.resultado.toUpperCase() === selectedResult;
+    const votacionYear = new Date(votacion.fecha).getFullYear().toString();
+    const matchesYear = selectedYear === "TODOS" || votacionYear === selectedYear;
+    return matchesResult && matchesYear;
+  });
 
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Todas las Votaciones del Senado</h1>
       <VotacionFilter
         selectedResult={selectedResult}
+        selectedYear={selectedYear}
         onResultChange={setSelectedResult}
+        onYearChange={setSelectedYear}
         possibleResults={possibleResults}
+        possibleYears={possibleYears}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVotaciones.map((votacion) => (
