@@ -45,15 +45,25 @@ export default function VotacionCard({
   const abstentionsPercentage = total > 0 ? ((abstentionsNum / total) * 100).toFixed(1) : "0.0"
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const options: Intl.DateTimeFormatOptions = {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.warn('Fecha inválida:', dateString);
+        return 'Fecha inválida';
+      }
+      const options: Intl.DateTimeFormatOptions = {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Argentina/Buenos_Aires'
+      };
+      return date.toLocaleDateString('es-AR', options);
+    } catch (error) {
+      console.error('Error al formatear fecha:', error);
+      return 'Error en fecha';
     }
-    return date.toLocaleDateString('es-AR', options)
   }
 
   const getCardStyles = () => {
