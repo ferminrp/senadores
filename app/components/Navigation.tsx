@@ -21,8 +21,7 @@ export default function Navigation() {
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
           Senado Argentino
-        </Link>
-        
+        </Link>        
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-4">
           {navigationItems.map(([title, url]) => (

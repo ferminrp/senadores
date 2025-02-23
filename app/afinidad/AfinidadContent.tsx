@@ -1,283 +1,219 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useVotaciones, useSenatorsData, Votacion, Senator, Voto } from "../lib/data"
+import { useState } from "react"
+import { useVotaciones, useSenatorsData } from "../lib/data"
+import type { Senator } from "../types"
+import type { Votacion } from "../lib/data"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react"
-import Image from "next/image"
+import { Card } from "@/components/ui/card"
+import SenadorCard from "../components/SenadorCard"
+import Skeleton from "../components/Skeleton"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+
+type UserVote = {
+  title: string
+  vote: string
+}
+
+interface SenatorMatch {
+  senator: Senator
+  matchPercentage: number
+  matchCount: number
+  totalVotes: number
+}
+
+type SortOption = {
+  value: string
+  label: string
+  sortFn: (a: SenatorMatch, b: SenatorMatch) => number
+}
 
 export default function AfinidadContent() {
-  const { votaciones, isLoading: votacionesLoading } = useVotaciones()
-  const { senatorsData, isLoading: senatorsLoading } = useSenatorsData()
-  const [selectedVotaciones, setSelectedVotaciones] = useState<Votacion[]>([])
-  const [currentVotacionIndex, setCurrentVotacionIndex] = useState(0)
-  const [userVotes, setUserVotes] = useState<Record<number, string>>({})
-  const [results, setResults] = useState<{
-    senators: { name: string; affinity: number; foto: string; partido: string }[];
-    parties: { name: string; affinity: number }[];
-  } | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [sortAscending, setSortAscending] = useState(false)
-  const senatorsPerPage = 10
+  const [userVotes, setUserVotes] = useState<UserVote[]>([])
+  const [showResults, setShowResults] = useState(false)
+  const [matchedSenators, setMatchedSenators] = useState<SenatorMatch[]>([])
+  const [sortBy, setSortBy] = useState<string>("afinidad-desc")
+  const { votaciones, isLoading: isLoadingVotaciones } = useVotaciones()
+  const { senatorsData, isLoading: isLoadingSenatorsData } = useSenatorsData()
 
-  useEffect(() => {
-    if (votaciones && selectedVotaciones.length === 0) {
-      // Select 10 random votaciones
-      const shuffled = [...votaciones].sort(() => 0.5 - Math.random())
-      setSelectedVotaciones(shuffled.slice(0, 10))
+  const sortOptions: SortOption[] = [
+    {
+      value: "afinidad-desc",
+      label: "Mayor afinidad primero",
+      sortFn: (a, b) => b.matchPercentage - a.matchPercentage
+    },
+    {
+      value: "afinidad-asc",
+      label: "Menor afinidad primero",
+      sortFn: (a, b) => a.matchPercentage - b.matchPercentage
+    },
+    {
+      value: "name-asc",
+      label: "Nombre A-Z",
+      sortFn: (a, b) => a.senator.name.localeCompare(b.senator.name)
+    },
+    {
+      value: "name-desc",
+      label: "Nombre Z-A",
+      sortFn: (a, b) => b.senator.name.localeCompare(a.senator.name)
     }
-  }, [votaciones])
+  ]
 
-  const handleVote = (actaId: number, vote: string) => {
-    setUserVotes((prev) => ({ ...prev, [actaId]: vote }))
-    if (currentVotacionIndex < selectedVotaciones.length - 1) {
-      setCurrentVotacionIndex(prev => prev + 1)
-    }
+  const getSortedSenators = () => {
+    const sortFn = sortOptions.find(option => option.value === sortBy)?.sortFn
+    return sortFn ? [...matchedSenators].sort(sortFn) : matchedSenators
   }
 
-  const calculateResults = () => {
-    if (!senatorsData) return
-
-    const senatorVotes = new Map<string, { total: number; matches: number }>()
-    const partyVotes = new Map<string, { total: number; matches: number }>()
-
-    // Calculate matches for each senator
-    selectedVotaciones.forEach((votacion) => {
-      const userVote = userVotes[votacion.actaId]
-      if (!userVote) return
-
-      votacion.votos.forEach((voto: Voto) => {
-        // Senator affinity
-        const senatorCurrent = senatorVotes.get(voto.nombre) || { total: 0, matches: 0 }
-        senatorCurrent.total++
-        if (voto.voto === userVote) {
-          senatorCurrent.matches++
-        }
-        senatorVotes.set(voto.nombre, senatorCurrent)
-
-        // Party affinity
-        const senator = senatorsData.find((s: Senator) => s.nombre === voto.nombre)
-        if (senator) {
-          const partyCurrent = partyVotes.get(senator.partido) || { total: 0, matches: 0 }
-          partyCurrent.total++
-          if (voto.voto === userVote) {
-            partyCurrent.matches++
-          }
-          partyVotes.set(senator.partido, partyCurrent)
-        }
-      })
+  const handleVote = (title: string, vote: string) => {
+    setUserVotes(prev => {
+      const existing = prev.find(v => v.title === title)
+      if (existing && existing.vote === vote) {
+        return prev.filter(v => v.title !== title)
+      }
+      if (existing) {
+        return prev.map(v => v.title === title ? { ...v, vote } : v)
+      }
+      return [...prev, { title, vote }]
     })
+  }
 
-    // Calculate percentages with senator details
-    const senatorResults = Array.from(senatorVotes.entries())
-      .map(([name, { total, matches }]) => {
-        const senatorDetails = senatorsData.find(s => s.nombre === name)
-        return {
-          name,
-          affinity: (matches / total) * 100,
-          foto: senatorDetails?.foto || "",
-          partido: senatorDetails?.partido || "",
+  const calculateMatches = () => {
+    if (!votaciones || !senatorsData || userVotes.length === 0) return
+
+    const senatorMatches = senatorsData.map((senator: Senator) => {
+      let matchCount = 0
+      let totalVotes = 0
+
+      userVotes.forEach(userVote => {
+        const votacion = votaciones.find(v => v.titulo === userVote.title)
+        if (!votacion) return
+
+        const senatorVote = votacion.votos.find(v => v.nombre.trim() === senator.name.trim())
+        if (!senatorVote) {
+          console.log('No vote found for senator:', senator.name, 'in votacion:', votacion.titulo)
+          return
         }
+
+        // Map vote values to match the format
+        const normalizedUserVote = userVote.vote === "AFIRMATIVO" ? "AFIRMATIVO" :
+                                  userVote.vote === "NEGATIVO" ? "NEGATIVO" :
+                                  userVote.vote === "ABSTENCION" ? "ABSTENCION" : ""
+
+        // Debug the actual comparison
+        console.log('Vote comparison:', {
+          senator: senator.name,
+          votacion: votacion.titulo,
+          userVote: normalizedUserVote,
+          senatorVote: senatorVote.voto,
+          matches: normalizedUserVote === senatorVote.voto
+        })
+
+        if (normalizedUserVote === senatorVote.voto) {
+          matchCount++
+        }
+        totalVotes++
       })
-      .sort((a, b) => b.affinity - a.affinity)
 
-    const partyResults = Array.from(partyVotes.entries())
-      .map(([name, { total, matches }]) => ({
-        name,
-        affinity: (matches / total) * 100
-      }))
-      .sort((a, b) => b.affinity - a.affinity)
+      const matchPercentage = totalVotes > 0 ? (matchCount / totalVotes) * 100 : 0
 
-    setResults({ senators: senatorResults, parties: partyResults })
+      return { 
+        senator, 
+        matchPercentage,
+        matchCount,
+        totalVotes // Adding these for debugging
+      }
+    }).filter((match: SenatorMatch) => match.totalVotes > 0) // Only include senators who voted
+
+    const sortFn = sortOptions.find(option => option.value === sortBy)?.sortFn
+    setMatchedSenators(senatorMatches.sort(sortFn || sortOptions[0].sortFn))
+    setShowResults(true)
   }
 
-  if (votacionesLoading || senatorsLoading) {
-    return <div className="container mx-auto p-4">Cargando...</div>
+  if (isLoadingVotaciones || isLoadingSenatorsData) {
+    return <div className="container mx-auto p-4"><Skeleton className="h-96" /></div>
   }
-
-  const progressPercentage = (Object.keys(userVotes).length / selectedVotaciones.length) * 100
 
   return (
-    <div className="container mx-auto py-6 px-4 md:px-6">
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-4xl font-bold">Test de Afinidad</h1>
-        <Badge variant="secondary" className="text-sm">BETA</Badge>
-      </div>
-      <div className="flex flex-col gap-6">
-        {!results ? (
-          <>
-            <p className="text-center text-muted-foreground">Vote en las siguientes 10 votaciones para descubrir con qué senadores y partidos tiene mayor afinidad.</p>
-            
-            <div>
-              <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                <span>Progreso</span>
-                <span>{Object.keys(userVotes).length} de {selectedVotaciones.length} votaciones</span>
-              </div>
-              <Progress value={progressPercentage} className="h-2" />
-            </div>
+    <main className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">Encuentra tu Afinidad Política</h1>
+      <div className="space-y-6">
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">Últimas Votaciones</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {votaciones?.slice(0, 10).map((votacion: Votacion) => {
+              const currentVote = userVotes.find(v => v.title === votacion.titulo)?.vote
 
-            {selectedVotaciones.length > 0 && (
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle className="text-xl">{selectedVotaciones[currentVotacionIndex].titulo}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-6">{selectedVotaciones[currentVotacionIndex].descripcion}</p>
-                  <div className="flex flex-row gap-3 w-full">
-                    <Button
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      variant="default"
-                      size="lg"
-                      onClick={() => handleVote(selectedVotaciones[currentVotacionIndex].actaId, "si")}
-                      disabled={userVotes[selectedVotaciones[currentVotacionIndex].actaId] !== undefined}
+              return (
+                <Card key={votacion.titulo} className="p-4">
+                  <h3 className="font-medium mb-2 break-words">{votacion.titulo}</h3>
+                  <p className="text-sm text-gray-400 mb-2">{votacion.descripcion}</p>
+                  <p className="text-sm text-gray-400 mb-4">Fecha: {new Date(votacion.fecha).toLocaleDateString()}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      variant={currentVote === "AFIRMATIVO" ? "default" : "outline"}
+                      onClick={() => handleVote(votacion.titulo, "AFIRMATIVO")}
                     >
                       A favor
                     </Button>
-                    <Button
-                      className="w-full bg-red-600 hover:bg-red-700"
-                      variant="default"
-                      size="lg"
-                      onClick={() => handleVote(selectedVotaciones[currentVotacionIndex].actaId, "no")}
-                      disabled={userVotes[selectedVotaciones[currentVotacionIndex].actaId] !== undefined}
+                    <Button 
+                      variant={currentVote === "NEGATIVO" ? "default" : "outline"}
+                      onClick={() => handleVote(votacion.titulo, "NEGATIVO")}
                     >
                       En contra
                     </Button>
-                    <Button
-                      className="w-full bg-gray-600 hover:bg-gray-700"
-                      variant="default"
-                      size="lg"
-                      onClick={() => handleVote(selectedVotaciones[currentVotacionIndex].actaId, "ausente")}
-                      disabled={userVotes[selectedVotaciones[currentVotacionIndex].actaId] !== undefined}
+                    <Button 
+                      variant={currentVote === "ABSTENCION" ? "default" : "outline"}
+                      onClick={() => handleVote(votacion.titulo, "ABSTENCION")}
                     >
                       Abstención
                     </Button>
                   </div>
-                </CardContent>
-                <CardFooter className="flex justify-between text-sm text-muted-foreground">
-                  <span>Votación {currentVotacionIndex + 1} de {selectedVotaciones.length}</span>
-                  {Object.keys(userVotes).length === selectedVotaciones.length && (
-                    <Button
-                      onClick={calculateResults}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Ver resultados
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-            )}
-          </>
-        ) : (
-          <div className="space-y-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Afinidad con Senadores</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSortAscending(!sortAscending)}
-                  className="flex items-center gap-2"
-                >
-                  Ordenar <ArrowUpDown className="h-4 w-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {results.senators
-                    .sort((a, b) => sortAscending ? a.affinity - b.affinity : b.affinity - a.affinity)
-                    .slice((currentPage - 1) * senatorsPerPage, currentPage * senatorsPerPage)
-                    .map((senator) => (
-                      <div key={senator.name} className="flex items-center gap-4 pb-4">
-                        <div className="flex-shrink-0 w-12 h-12 relative rounded-full overflow-hidden">
-                          <Image
-                            src={senator.foto}
-                            alt={senator.name}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex justify-between mb-1">
-                            <div>
-                              <span className="font-medium">{senator.name}</span>
-                              <span className="text-sm text-muted-foreground ml-2">
-                                {senator.partido}
-                              </span>
-                            </div>
-                            <span className="font-medium">{senator.affinity.toFixed(1)}%</span>
-                          </div>
-                          <Progress value={senator.affinity} className="h-2" />
-                        </div>
-                      </div>
-                    ))}
-                </div>
-                
-                <div className="flex items-center justify-between mt-6">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="flex items-center gap-2"
-                  >
-                    <ChevronLeft className="h-4 w-4" /> Anterior
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Página {currentPage} de {Math.ceil(results.senators.length / senatorsPerPage)}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(results.senators.length / senatorsPerPage), prev + 1))}
-                    disabled={currentPage === Math.ceil(results.senators.length / senatorsPerPage)}
-                    className="flex items-center gap-2"
-                  >
-                    Siguiente <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Afinidad con Partidos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {results.parties.map((party) => (
-                    <div key={party.name}>
-                      <div className="flex justify-between mb-1">
-                        <span>{party.name}</span>
-                        <span>{party.affinity.toFixed(1)}%</span>
-                      </div>
-                      <Progress value={party.affinity} className="h-2" />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button 
-              onClick={() => {
-                setResults(null)
-                setUserVotes({})
-                setCurrentVotacionIndex(0)
-                // Reshuffle votaciones
-                if (votaciones) {
-                  const shuffled = [...votaciones].sort(() => 0.5 - Math.random())
-                  setSelectedVotaciones(shuffled.slice(0, 10))
-                }
-              }}
-              className="w-full"
-            >
-              Volver a votar
-            </Button>
+                </Card>
+              )
+            })}
           </div>
+        </section>
+
+        <div className="flex justify-center">
+          <Button 
+            size="lg"
+            onClick={calculateMatches}
+            disabled={userVotes.length === 0}
+          >
+            Ver Resultados
+          </Button>
+        </div>
+
+        {showResults && matchedSenators.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold">Senadores con Mayor Afinidad</h2>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Ordenar por..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {getSortedSenators().slice(0, 6).map(({senator, matchPercentage}) => (
+                <div key={senator.name} className="relative">
+                  <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-sm z-10">
+                    {matchPercentage.toFixed(1)}% de coincidencia
+                  </div>
+                  <SenadorCard {...senator} />
+                </div>
+              ))}
+            </div>
+          </section>
         )}
       </div>
-    </div>
+    </main>
   )
-} 
+}
