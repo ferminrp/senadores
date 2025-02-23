@@ -10,7 +10,7 @@ export default function VotacionFilter({ selectedResult, onResultChange, possibl
   return (
     <div className="mb-6">
       <Select value={selectedResult} onValueChange={onResultChange}>
-        <SelectTrigger className="w-[200px]">
+        <SelectTrigger className="w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <SelectValue placeholder="Filtrar por resultado" />
         </SelectTrigger>
         <SelectContent>

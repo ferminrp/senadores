@@ -113,11 +113,11 @@ export default function SenadoresContent() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <div className="bg-red-900/20 p-4 rounded-full mb-6">
-            <AlertCircle className="w-12 h-12 text-red-500" />
+          <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-full mb-6">
+            <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-500" />
           </div>
-          <h1 className="text-4xl font-bold mb-4">No pudimos cargar los senadores</h1>
-          <p className="text-gray-400 max-w-md mb-8">
+          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">No pudimos cargar los senadores</h1>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8">
             Hubo un problema al cargar los datos de los senadores. Esto puede deberse a problemas de conexión o mantenimiento del servidor.
           </p>
           <Button 
@@ -135,13 +135,13 @@ export default function SenadoresContent() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Senadores</h1>
+      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Senadores</h1>
       <div className="space-y-4 mb-6">
         <div className="relative">
           <input
             type="text"
             placeholder="Buscar senador..."
-            className="w-full p-2 pl-10 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 pl-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500/40"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -149,7 +149,7 @@ export default function SenadoresContent() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select value={selectedParty} onValueChange={setSelectedParty}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <SelectValue placeholder="Filtrar por partido" />
             </SelectTrigger>
             <SelectContent>
@@ -162,7 +162,7 @@ export default function SenadoresContent() {
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <SelectValue placeholder="Ordenar por..." />
             </SelectTrigger>
             <SelectContent>
@@ -178,7 +178,7 @@ export default function SenadoresContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoadingVotaciones || isLoadingSenatorsData
           ? Array.from({ length: SENATORS_PER_PAGE }).map((_, index) => (
-              <div key={index} className="bg-gray-800 rounded-lg shadow-md p-6">
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <Skeleton className="w-16 h-16 rounded-full" />
                   <Skeleton className="h-6 w-3/4" />

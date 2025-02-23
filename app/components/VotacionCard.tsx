@@ -59,11 +59,11 @@ export default function VotacionCard({
   const getCardStyles = () => {
     switch (resultado?.toUpperCase()) {
       case "AFIRMATIVA":
-        return "bg-green-900/20 border-2 border-green-900/40"
+        return "bg-green-100 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-900/40"
       case "NEGATIVA":
-        return "bg-red-900/20 border-2 border-red-900/40"
+        return "bg-red-100 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-900/40"
       default:
-        return "bg-gray-800 border-2 border-gray-700"
+        return "bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700"
     }
   }
 
@@ -76,16 +76,16 @@ export default function VotacionCard({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <h2 className="text-xl font-bold line-clamp-2">{titulo || "Sin título"}</h2>
+              <h2 className="text-xl font-bold line-clamp-2 text-gray-900 dark:text-gray-100">{titulo || "Sin título"}</h2>
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-sm">{titulo || "Sin título"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <p className="text-sm text-gray-400">{proyecto}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{proyecto}</p>
       </div>
-      <div className="flex items-center gap-2 text-gray-400 mb-4">
+      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-4">
         <Calendar size={16} className="text-gray-500" />
         <span>{formatDate(fecha)}</span>
       </div>
@@ -97,19 +97,19 @@ export default function VotacionCard({
       <div className="flex justify-between text-sm mt-4">
         <span className="flex items-center">
           <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-          <span className="text-green-400">
+          <span className="text-green-700 dark:text-green-400">
             Afirmativo: {affirmativePercentage}% ({affirmativeNum})
           </span>
         </span>
         <span className="flex items-center">
           <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-          <span className="text-red-400">
+          <span className="text-red-700 dark:text-red-400">
             Negativo: {negativePercentage}% ({negativeNum})
           </span>
         </span>
         <span className="flex items-center">
           <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
-          <span className="text-yellow-400">
+          <span className="text-yellow-700 dark:text-yellow-400">
             Abstenciones: {abstentionsPercentage}% ({abstentionsNum})
           </span>
         </span>
