@@ -248,13 +248,17 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                         ? "bg-green-100 dark:bg-green-400/40 text-green-600 dark:text-green-400/90 ring-1 ring-green-200 dark:ring-green-400/50" 
                         : vote.voto.toLowerCase() === "no" 
                           ? "bg-red-100 dark:bg-red-400/40 text-red-600 dark:text-red-400/90 ring-1 ring-red-200 dark:ring-red-400/50"
-                          : "bg-yellow-100 dark:bg-yellow-400/40 text-yellow-600 dark:text-yellow-400/90 ring-1 ring-yellow-200 dark:ring-yellow-400/50"}`}
+                          : vote.voto.toLowerCase() === "ausente"
+                            ? "bg-gray-100 dark:bg-gray-400/40 text-gray-600 dark:text-gray-400/90 ring-1 ring-gray-200 dark:ring-gray-400/50"
+                            : "bg-yellow-100 dark:bg-yellow-400/40 text-yellow-600 dark:text-yellow-400/90 ring-1 ring-yellow-200 dark:ring-yellow-400/50"}`}
                     >
                       {vote.voto.toLowerCase() === "si" 
                         ? <CheckCircle2 size={14} /> 
                         : vote.voto.toLowerCase() === "no" 
                           ? <XCircle size={14} />
-                          : <CircleDot size={14} />}
+                          : vote.voto.toLowerCase() === "ausente"
+                            ? <Armchair size={14} />
+                            : <CircleDot size={14} />}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -269,13 +273,17 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                         ? "bg-green-100 dark:bg-green-400/10 text-green-600 dark:text-green-400" 
                         : vote.voto.toLowerCase() === "no" 
                           ? "bg-red-100 dark:bg-red-400/10 text-red-600 dark:text-red-400"
-                          : "bg-yellow-100 dark:bg-yellow-400/10 text-yellow-600 dark:text-yellow-400"}`}
+                          : vote.voto.toLowerCase() === "ausente"
+                            ? "bg-gray-100 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400"
+                            : "bg-yellow-100 dark:bg-yellow-400/10 text-yellow-600 dark:text-yellow-400"}`}
                     >
                       {vote.voto.toLowerCase() === "si" 
                         ? "Afirmativo"
                         : vote.voto.toLowerCase() === "no"
                           ? "Negativo"
-                          : "Abstención"}
+                          : vote.voto.toLowerCase() === "ausente"
+                            ? "Ausente"
+                            : "Abstención"}
                     </div>
                   </div>
                 </div>
