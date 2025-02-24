@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react"
 import SenadorCard from "../components/SenadorCard"
 import { useVotaciones, useSenatorsData } from "../lib/data"
-import { Search, AlertCircle } from "lucide-react"
+import { Search, AlertCircle, Check, ChevronsUpDown } from "lucide-react"
 import Skeleton from "../components/Skeleton"
 import type { Senator } from "../types"
 import { PaginationComponent } from "../components/Pagination"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select"
 
 const SENATORS_PER_PAGE = 9
 
@@ -140,19 +143,57 @@ export default function SenadoresContent() {
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
         
-        <Select value={selectedParty} onValueChange={setSelectedParty}>
-          <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <SelectValue placeholder="Filtrar por partido" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[40vh] overflow-y-auto" side="top" align="start" position="popper">
-            <SelectItem value="TODOS">Todos los partidos</SelectItem>
-            {uniqueParties.map((party) => (
-              <SelectItem key={party} value={party}>
-                {party}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className="w-full md:w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 justify-between"
+            >
+              {selectedParty === "TODOS" 
+                ? "Todos los partidos" 
+                : selectedParty || "Seleccionar partido"}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Buscar partido..." />
+              <CommandEmpty>No se encontró el partido.</CommandEmpty>
+            <CommandList>
+              <CommandGroup>
+                <CommandItem
+                  value="TODOS"
+                  onSelect={() => setSelectedParty("TODOS")}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedParty === "TODOS" ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  Todos los partidos
+                </CommandItem>
+                {uniqueParties.map((party) => (
+                  <CommandItem
+                    key={party}
+                    value={party}
+                    onSelect={() => setSelectedParty(party)}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedParty === party ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {party}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
         <div className="flex gap-2">
           <Select value={sortBy} onValueChange={setSortBy}>
