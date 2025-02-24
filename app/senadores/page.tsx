@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import SenadoresContent from "./SenadoresContent"
+import { Suspense } from "react"
 
 export const metadata: Metadata = {
   title: "Senadores",
@@ -19,13 +20,16 @@ export const metadata: Metadata = {
     title: "Senadores | Senado Argentino",
     description: "Explora el listado completo de senadores, sus bloques políticos y su historial de votaciones en el Senado de la Nación Argentina.",
     images: ['/meta-image.png']
-  }
+  },
+  metadataBase: new URL('https://your-domain.com'),
 }
 
 export default function Senadores() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <SenadoresContent />
+      <Suspense fallback={<div>Loading...</div>}>
+        <SenadoresContent />
+      </Suspense>
     </div>
   )
 }
