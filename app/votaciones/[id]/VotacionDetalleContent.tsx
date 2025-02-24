@@ -66,21 +66,21 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
   if (!votacion) return <div>Votación no encontrada</div>
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-6 md:py-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-card backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex-1 space-y-4">
               <h1 className="text-3xl font-bold leading-tight">{votacion.titulo || "Sin título"}</h1>
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                <div className="flex items-center text-muted-foreground">
+                <div className="flex items-start md:items-center text-muted-foreground">
                   <span className="block">{formatDate(votacion.fecha)}</span>
                 </div>
-                <div className="flex items-center text-muted-foreground">
+                <div className="flex items-start md:items-center text-muted-foreground">
                   <span className="block font-medium mr-2">Quórum:</span>
                   <span className="block">{votacion.quorumTipo}</span>
                 </div>
-                <div className="flex items-center text-muted-foreground">
+                <div className="flex items-start md:items-center text-muted-foreground">
                   <span className="block font-medium mr-2">Mayoría:</span>
                   <span className="block">{votacion.mayoria}</span>
                 </div>
@@ -91,22 +91,22 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
             </div>
             <Badge 
               variant={getBadgeVariant(votacion.resultado)} 
-              className="text-base px-6 py-1.5 h-9 capitalize rounded-full font-medium shadow-lg"
+              className="text-base px-6 py-1.5 h-9 capitalize rounded-full font-medium shadow-lg justify-center"
             >
               {votacion.resultado}
             </Badge>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8 md:mb-12">
           {/* Card de Asistencia */}
           <div className="bg-card backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-8 py-6 border-b border-border">
+            <div className="px-8 py-4 md:py-6 border-b border-border">
               <h3 className="text-xl font-semibold">Asistencia</h3>
             </div>
-            <div className="p-8">
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-6 text-center">
+            <div className="p-4 md:p-8">
+              <div className="grid grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-8">
+                <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-4 md:p-6 text-center">
                   <span className="block text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{votacion.presentes}</span>
                   <span className="text-sm text-muted-foreground font-medium">Presentes</span>
                 </div>
@@ -129,11 +129,11 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
 
           {/* Card de Votos */}
           <div className="bg-card backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-8 py-6 border-b border-border">
+            <div className="px-8 py-4 md:py-6 border-b border-border">
               <h3 className="text-xl font-semibold">Resultados</h3>
             </div>
-            <div className="p-8">
-              <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className="p-4 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-muted/50 backdrop-blur-sm rounded-xl p-6 text-center">
                   <span className="block text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{votacion.afirmativos}</span>
                   <span className="text-sm text-muted-foreground font-medium">Afirmativos</span>
