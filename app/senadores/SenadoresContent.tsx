@@ -29,6 +29,7 @@ import SenadorCard from "../components/SenadorCard";
 import Skeleton from "../components/Skeleton";
 import { useSenatorsData, useVotaciones } from "../lib/data";
 import type { Senator } from "../types";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const SENATORS_PER_PAGE = 9;
 
@@ -39,12 +40,15 @@ type SortOption = {
 };
 
 export default function SenadoresContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [senadores, setSenadores] = useState<Senator[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedParty, setSelectedParty] = useState<string>("TODOS");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<string>("period");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const searchTerm = searchParams.get("search") || "";
+  const selectedParty = searchParams.get("party") || "TODOS";
+  const sortBy = searchParams.get("sort") || "period";
+  const sortOrder = (searchParams.get("order") || "desc") as "asc" | "desc";
 
   const {
     votaciones,
@@ -154,6 +158,38 @@ export default function SenadoresContent() {
 
   const totalPages = Math.ceil(filteredSenadores.length / SENATORS_PER_PAGE);
 
+  const updateUrlParams = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+    router.push(`/senadores?${params.toString()}`);
+  };
+
+  const handleSearch = (value: string) => {
+    updateUrlParams({ search: value, page: "1" });
+  };
+
+  const handlePartySelect = (value: string) => {
+    updateUrlParams({ party: value, page: "1" });
+  };
+
+  const handleSortChange = (value: string) => {
+    updateUrlParams({ sort: value, page: "1" });
+  };
+
+  const handleSortOrderToggle = () => {
+    updateUrlParams({ order: sortOrder === "asc" ? "desc" : "asc", page: "1" });
+  };
+
+  const handlePageChange = (page: number) => {
+    updateUrlParams({ page: page.toString() });
+  };
+
   if (isErrorVotaciones || isErrorSenatorsData) {
     return (
       <main className="container mx-auto px-4 py-8">
@@ -193,7 +229,7 @@ export default function SenadoresContent() {
             placeholder="Buscar senador..."
             className="w-full p-2 pl-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500/40"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
@@ -219,7 +255,7 @@ export default function SenadoresContent() {
                 <CommandGroup>
                   <CommandItem
                     value="TODOS"
-                    onSelect={() => setSelectedParty("TODOS")}
+                    onSelect={() => handlePartySelect("TODOS")}
                   >
                     <Check
                       className={cn(
@@ -233,7 +269,7 @@ export default function SenadoresContent() {
                     <CommandItem
                       key={party}
                       value={party}
-                      onSelect={() => setSelectedParty(party)}
+                      onSelect={() => handlePartySelect(party)}
                     >
                       <Check
                         className={cn(
@@ -251,7 +287,7 @@ export default function SenadoresContent() {
         </Popover>
 
         <div className="flex">
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={sortBy} onValueChange={handleSortChange}>
             <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-r-none border-r-0">
               <SelectValue placeholder="Ordenar por..." />
             </SelectTrigger>
@@ -267,7 +303,7 @@ export default function SenadoresContent() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            onClick={handleSortOrderToggle}
             className="aspect-square h-10 rounded-l-none border-l-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
           >
             {sortOrder === "desc" ? "↓" : "↑"}
@@ -302,7 +338,7 @@ export default function SenadoresContent() {
           <PaginationComponent
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
           />
         </div>
       )}
