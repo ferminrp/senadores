@@ -11,9 +11,13 @@ export type Senator = {
   telefono?: string
   twitter?: string
   instagram?: string
+  periodoReal?: {
+    inicio: string
+    fin: string
+  }
 }
 
-export type Votacion = {
+export interface Votacion {
   act_id: string
   motion_number: string
   date: string
@@ -25,4 +29,3 @@ export type Votacion = {
     vote: string
   }[]
 }
-

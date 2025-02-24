@@ -10,6 +10,29 @@ import Image from "next/image"
 import { AFINIDAD_CONFIG } from "./config"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { InfoIcon } from "lucide-react"
+import type { Metadata } from "next"
+
+// Export metadata from the main branch for SEO
+export const metadata: Metadata = {
+  title: "Test de Afinidad",
+  description: "Descubre con qué senadores y partidos políticos tenés mayor afinidad basado en tus votos en proyectos reales.",
+  openGraph: {
+    title: "Test de Afinidad | Senado Argentino",
+    description: "Descubre con qué senadores y partidos políticos tenés mayor afinidad basado en tus votos en proyectos reales.",
+    images: [{
+      url: '/meta-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Test de Afinidad con Senadores'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Test de Afinidad | Senado Argentino",
+    description: "Descubre con qué senadores y partidos políticos tenés mayor afinidad basado en tus votos en proyectos reales.",
+    images: ['/meta-image.png']
+  }
+}
 
 export default function AfinidadPage() {
   const { votaciones, isLoading: votacionesLoading } = useVotaciones()
@@ -24,6 +47,9 @@ export default function AfinidadPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortAscending, setSortAscending] = useState(false)
   const senatorsPerPage = 10
+
+  // Calculate progress percentage
+  const progressPercentage = (Object.keys(userVotes).length / selectedVotaciones.length) * 100 || 0
 
   useEffect(() => {
     if (votaciones) {
@@ -52,66 +78,55 @@ export default function AfinidadPage() {
   }
 
   const calculateResults = () => {
-    if (!senatorsData) return
+    if (!senatorsData || Object.keys(userVotes).length === 0) return
 
-    const senatorVotes = new Map<string, { total: number; matches: number }>()
-    const partyVotes = new Map<string, { total: number; matches: number }>()
+    const senatorAffinities: { name: string; affinity: number; foto: string; partido: string }[] = []
+    const partyAffinities: { [key: string]: { total: number; count: number } } = {}
 
-    // Calculate matches for each senator
-    selectedVotaciones.forEach((votacion) => {
-      const userVote = userVotes[votacion.actaId]
-      if (!userVote) return
+    senatorsData.forEach(senator => {
+      let matches = 0
+      let totalVotaciones = 0
 
-      votacion.votos.forEach((voto: Voto) => {
-        // Senator affinity
-        const senatorCurrent = senatorVotes.get(voto.nombre) || { total: 0, matches: 0 }
-        senatorCurrent.total++
-        if (voto.voto === userVote) {
-          senatorCurrent.matches++
-        }
-        senatorVotes.set(voto.nombre, senatorCurrent)
+      selectedVotaciones.forEach(votacion => {
+        const userVote = userVotes[votacion.actaId]
+        const senatorVote = senator.votos[votacion.actaId]?.voto
 
-        // Party affinity
-        const senator = senatorsData.find((s: Senator) => s.nombre === voto.nombre)
-        if (senator) {
-          const partyCurrent = partyVotes.get(senator.partido) || { total: 0, matches: 0 }
-          partyCurrent.total++
-          if (voto.voto === userVote) {
-            partyCurrent.matches++
+        if (userVote && senatorVote && userVote !== FormaVoto.AUSENTE && senatorVote !== FormaVoto.AUSENTE) {
+          totalVotaciones++
+          if (userVote === senatorVote) {
+            matches++
           }
-          partyVotes.set(senator.partido, partyCurrent)
         }
       })
+
+      if (totalVotaciones > 0) {
+        const affinity = (matches / totalVotaciones) * 100
+        senatorAffinities.push({
+          name: senator.nombre,
+          affinity,
+          foto: senator.foto,
+          partido: senator.partido
+        })
+
+        // Update party affinity
+        if (!partyAffinities[senator.partido]) {
+          partyAffinities[senator.partido] = { total: 0, count: 0 }
+        }
+        partyAffinities[senator.partido].total += affinity
+        partyAffinities[senator.partido].count += 1
+      }
     })
 
-    // Calculate percentages with senator details
-    const senatorResults = Array.from(senatorVotes.entries())
-      .map(([name, { total, matches }]) => {
-        const senatorDetails = senatorsData.find(s => s.nombre === name)
-        return {
-          name,
-          affinity: (matches / total) * 100,
-          foto: senatorDetails?.foto || "",
-          partido: senatorDetails?.partido || "",
-        }
-      })
-      .sort((a, b) => b.affinity - a.affinity)
+    const parties = Object.entries(partyAffinities).map(([name, data]) => ({
+      name,
+      affinity: data.total / data.count
+    }))
 
-    const partyResults = Array.from(partyVotes.entries())
-      .map(([name, { total, matches }]) => ({
-        name,
-        affinity: (matches / total) * 100
-      }))
-      .sort((a, b) => b.affinity - a.affinity)
-
-    setResults({ senators: senatorResults, parties: partyResults })
+    setResults({
+      senators: senatorAffinities,
+      parties: parties.sort((a, b) => b.affinity - a.affinity)
+    })
   }
-
-  if (votacionesLoading || senatorsLoading) {
-    return <div className="container mx-auto p-4">Cargando...</div>
-  }
-
-  const progressPercentage = (Object.keys(userVotes).length / selectedVotaciones.length) * 100
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-xl">
@@ -343,4 +358,4 @@ export default function AfinidadPage() {
       )}
     </div>
   )
-} 
+}
