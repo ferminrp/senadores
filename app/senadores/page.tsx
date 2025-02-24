@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: "Explora el listado completo de senadores, sus bloques políticos y su historial de votaciones en el Senado de la Nación Argentina.",
     images: ['/meta-image.png']
   },
-  metadataBase: new URL('https://your-domain.com'),
+  metadataBase: new URL('https://senadores.argentinadatos.com'),
 }
 
 export default function Senadores() {
