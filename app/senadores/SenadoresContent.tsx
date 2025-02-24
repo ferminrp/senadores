@@ -23,7 +23,8 @@ export default function SenadoresContent() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedParty, setSelectedParty] = useState<string>("TODOS")
   const [currentPage, setCurrentPage] = useState(1)
-  const [sortBy, setSortBy] = useState<string>("recentPeriod")
+  const [sortBy, setSortBy] = useState<string>("period")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
 
   const { votaciones, isLoading: isLoadingVotaciones, isError: isErrorVotaciones } = useVotaciones()
   const { senatorsData, isLoading: isLoadingSenatorsData, isError: isErrorSenatorsData } = useSenatorsData()
@@ -51,54 +52,33 @@ export default function SenadoresContent() {
       sortFn: () => 0
     },
     {
-      value: "recentPeriod",
-      label: "Período más reciente",
+      value: "period",
+      label: "Período",
       sortFn: (a, b) => {
         if (!a.periodoReal || !b.periodoReal) return 0;
         return new Date(b.periodoReal.inicio).getTime() - new Date(a.periodoReal.inicio).getTime();
       }
     },
     {
-      value: "mostVotes",
-      label: "Mayor cantidad de votos",
+      value: "votes",
+      label: "Cantidad de votos",
       sortFn: (a, b) => b.totalVotes - a.totalVotes
     },
     {
-      value: "leastVotes",
-      label: "Menor cantidad de votos",
-      sortFn: (a, b) => a.totalVotes - b.totalVotes
-    },
-    {
-      value: "mostPositive",
-      label: "Mayor cantidad de votos positivos",
+      value: "positive",
+      label: "Votos positivos",
       sortFn: (a, b) => b.affirmativeVotes - a.affirmativeVotes
     },
     {
-      value: "leastPositive",
-      label: "Menor cantidad de votos positivos",
-      sortFn: (a, b) => a.affirmativeVotes - b.affirmativeVotes
-    },
-    {
-      value: "mostNegative",
-      label: "Mayor cantidad de votos negativos",
+      value: "negative",
+      label: "Votos negativos",
       sortFn: (a, b) => b.negativeVotes - a.negativeVotes
     },
     {
-      value: "leastNegative",
-      label: "Menor cantidad de votos negativos",
-      sortFn: (a, b) => a.negativeVotes - b.negativeVotes
-    },
-    {
-      value: "mostAbstentions",
-      label: "Mayor cantidad de abstenciones",
+      value: "abstentions",
+      label: "Abstenciones",
       sortFn: (a, b) => (b.totalVotes - b.affirmativeVotes - b.negativeVotes) - 
                         (a.totalVotes - a.affirmativeVotes - a.negativeVotes)
-    },
-    {
-      value: "leastAbstentions",
-      label: "Menor cantidad de abstenciones",
-      sortFn: (a, b) => (a.totalVotes - a.affirmativeVotes - a.negativeVotes) - 
-                        (b.totalVotes - b.affirmativeVotes - b.negativeVotes)
     }
   ]
 
@@ -108,7 +88,11 @@ export default function SenadoresContent() {
       const matchesParty = selectedParty === "TODOS" || senador.party === selectedParty
       return matchesSearch && matchesParty
     })
-    .sort(sortOptions.find(option => option.value === sortBy)?.sortFn || (() => 0))
+    .sort((a, b) => {
+      const sortOption = sortOptions.find(option => option.value === sortBy)
+      if (!sortOption) return 0
+      return sortOrder === "desc" ? sortOption.sortFn(a, b) : sortOption.sortFn(b, a)
+    })
 
   const paginatedSenadores = filteredSenadores.slice(
     (currentPage - 1) * SENATORS_PER_PAGE,
@@ -144,8 +128,8 @@ export default function SenadoresContent() {
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Senadores</h1>
-      <div className="space-y-4 mb-6">
-        <div className="relative">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
           <input
             type="text"
             placeholder="Buscar senador..."
@@ -155,22 +139,24 @@ export default function SenadoresContent() {
           />
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select value={selectedParty} onValueChange={setSelectedParty}>
-            <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <SelectValue placeholder="Filtrar por partido" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[40vh] overflow-y-auto" side="top" align="start" position="popper">
-              <SelectItem value="TODOS">Todos los partidos</SelectItem>
-              {uniqueParties.map((party) => (
-                <SelectItem key={party} value={party}>
-                  {party}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        
+        <Select value={selectedParty} onValueChange={setSelectedParty}>
+          <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <SelectValue placeholder="Filtrar por partido" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[40vh] overflow-y-auto" side="top" align="start" position="popper">
+            <SelectItem value="TODOS">Todos los partidos</SelectItem>
+            {uniqueParties.map((party) => (
+              <SelectItem key={party} value={party}>
+                {party}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex gap-2">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <SelectValue placeholder="Ordenar por..." />
             </SelectTrigger>
             <SelectContent>
@@ -181,6 +167,15 @@ export default function SenadoresContent() {
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            className="aspect-square h-10"
+          >
+            {sortOrder === "desc" ? "↓" : "↑"}
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
