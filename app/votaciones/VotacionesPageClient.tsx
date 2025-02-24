@@ -4,32 +4,17 @@ import VotacionCard from "../components/VotacionCard"
 import VotacionFilter from "../components/VotacionFilter"
 import { useVotaciones } from "../lib/data"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 
 export default function VotacionesPageClient() {
   const { votaciones, isLoading, isError } = useVotaciones()
   const [selectedResult, setSelectedResult] = useState("TODOS")
-  const [selectedYear, setSelectedYear] = useState("TODOS")
-  const [possibleResults, setPossibleResults] = useState<string[]>([])
-  const [possibleYears, setPossibleYears] = useState<string[]>([])
-
-  useEffect(() => {
-    if (votaciones) {
-      const uniqueResults = Array.from(new Set(votaciones.map(v => v.resultado.toUpperCase())))
-        .filter(result => result && result.trim() !== '')
-        .sort()
-      setPossibleResults(uniqueResults)
-
-      const uniqueYears = Array.from(new Set(votaciones.map(v => new Date(v.fecha).getFullYear().toString())))
-        .sort((a, b) => b.localeCompare(a)) // Sort years in descending order
-      setPossibleYears(uniqueYears)
-    }
-  }, [votaciones])
 
   // Helper function to parse date string into a consistent format
   const parseDate = (dateStr: string) => {
+
     // Try different date formats
     // If it's DD/MM/YYYY format
     if (dateStr.includes('/')) {
@@ -51,6 +36,7 @@ export default function VotacionesPageClient() {
     return [...votaciones].sort((a, b) => {
       const dateA = parseDate(a.fecha)
       const dateB = parseDate(b.fecha)
+
       return dateB.getTime() - dateA.getTime()
     })
   }
@@ -58,18 +44,14 @@ export default function VotacionesPageClient() {
   if (isLoading) {
     return (
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Todas las Votaciones del Senado</h1>
+        <h1 className="text-4xl font-bold mb-8">Todas las Votaciones del Senado</h1>
         <VotacionFilter
           selectedResult={selectedResult}
-          selectedYear={selectedYear}
           onResultChange={setSelectedResult}
-          onYearChange={setSelectedYear}
-          possibleResults={[]}
-          possibleYears={[]}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 12 }).map((_, index) => (
-            <Skeleton key={index} className="h-64" />
+            <div key={index} className="h-64 bg-gray-800 rounded-lg animate-pulse" />
           ))}
         </div>
       </main>
@@ -80,11 +62,11 @@ export default function VotacionesPageClient() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-full mb-6">
-            <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-500" />
+          <div className="bg-red-900/20 p-4 rounded-full mb-6">
+            <AlertCircle className="w-12 h-12 text-red-500" />
           </div>
-          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">No pudimos cargar las votaciones</h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8">
+          <h1 className="text-4xl font-bold mb-4">No pudimos cargar las votaciones</h1>
+          <p className="text-gray-400 max-w-md mb-8">
             Hubo un problema al cargar las votaciones del Senado. Esto puede deberse a problemas de conexión o mantenimiento del servidor.
           </p>
           <Button 
@@ -104,33 +86,23 @@ export default function VotacionesPageClient() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">Sin Votaciones</h1>
-          <p className="text-gray-600 dark:text-gray-400">No hay votaciones disponibles</p>
+          <h1 className="text-4xl font-bold mb-4">Sin Votaciones</h1>
+          <p className="text-gray-400">No hay votaciones disponibles</p>
         </div>
       </main>
     )
   }
 
-  // Filter by both result and year, then sort by date
-  const filteredVotaciones = sortVotacionesByDate(
-    votaciones.filter((votacion) => {
-      const matchesResult = selectedResult === "TODOS" || votacion.resultado.toUpperCase() === selectedResult
-      const votacionYear = new Date(votacion.fecha).getFullYear().toString()
-      const matchesYear = selectedYear === "TODOS" || votacionYear === selectedYear
-      return matchesResult && matchesYear
-    })
-  )
+  const filteredVotaciones = selectedResult === "TODOS"
+    ? sortVotacionesByDate(votaciones)
+    : sortVotacionesByDate(votaciones.filter((votacion) => votacion.resultado.toUpperCase() === selectedResult))
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Todas las Votaciones del Senado</h1>
+      <h1 className="text-4xl font-bold mb-8">Todas las Votaciones del Senado</h1>
       <VotacionFilter
         selectedResult={selectedResult}
-        selectedYear={selectedYear}
         onResultChange={setSelectedResult}
-        onYearChange={setSelectedYear}
-        possibleResults={possibleResults}
-        possibleYears={possibleYears}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVotaciones.map((votacion) => (
@@ -150,3 +122,4 @@ export default function VotacionesPageClient() {
     </main>
   )
 }
+
