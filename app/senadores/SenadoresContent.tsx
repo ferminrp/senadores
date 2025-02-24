@@ -160,7 +160,7 @@ export default function SenadoresContent() {
             <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <SelectValue placeholder="Filtrar por partido" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[40vh] overflow-y-auto" side="top" align="start" position="popper">
               <SelectItem value="TODOS">Todos los partidos</SelectItem>
               {uniqueParties.map((party) => (
                 <SelectItem key={party} value={party}>
