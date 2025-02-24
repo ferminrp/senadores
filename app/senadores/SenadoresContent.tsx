@@ -44,6 +44,7 @@ export default function SenadoresContent() {
   const searchParams = useSearchParams();
   
   const [senadores, setSenadores] = useState<Senator[]>([]);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const currentPage = Number(searchParams.get("page")) || 1;
   const searchTerm = searchParams.get("search") || "";
   const selectedParty = searchParams.get("party") || "TODOS";
@@ -176,6 +177,7 @@ export default function SenadoresContent() {
 
   const handlePartySelect = (value: string) => {
     updateUrlParams({ party: value, page: "1" });
+    setPopoverOpen(false);
   };
 
   const handleSortChange = (value: string) => {
@@ -234,16 +236,18 @@ export default function SenadoresContent() {
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
 
-        <Popover>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
               className="w-full md:w-[200px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 justify-between"
             >
-              {selectedParty === "TODOS"
-                ? "Todos los partidos"
-                : selectedParty || "Seleccionar partido"}
+              <span className="truncate">
+                {selectedParty === "TODOS"
+                  ? "Todos los partidos"
+                  : selectedParty || "Seleccionar partido"}
+              </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
