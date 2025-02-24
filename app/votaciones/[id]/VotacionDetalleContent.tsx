@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Avatar from "../../components/Avatar"
 import { useVotaciones, useSenatorsData } from "../../lib/data"
-import { Armchair, CheckCircle2, XCircle, CircleDot, Search } from "lucide-react"
+import { Armchair, CheckCircle2, XCircle, CircleDot, Search, Download } from "lucide-react"
 import Skeleton from "../../components/Skeleton"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 
 interface Senator {
   nombre: string;
@@ -65,6 +66,9 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
   if (isLoadingVotaciones || isLoadingSenatorsData) return <Skeleton className="h-96" />
   if (!votacion) return <div>Votación no encontrada</div>
 
+  const handleDownload = () => {
+    window.open(`https://www.senado.gob.ar/votaciones/verActaVotacion/${id}`, "_blank")
+  }
   return (
     <main className="container mx-auto px-4 py-6 md:py-8">
       <div className="max-w-6xl mx-auto">
@@ -89,12 +93,18 @@ export default function VotacionDetalleContent({ id }: { id: string }) {
                 <p className="text-muted-foreground text-sm leading-relaxed">{votacion.descripcion}</p>
               )}
             </div>
-            <Badge 
-              variant={getBadgeVariant(votacion.resultado)} 
-              className="text-base px-6 py-1.5 h-9 capitalize rounded-full font-medium shadow-lg justify-center"
-            >
-              {votacion.resultado}
-            </Badge>
+            <div className="flex flex-col gap-4">
+              <Badge 
+                variant={getBadgeVariant(votacion.resultado)} 
+                className="text-base px-6 py-1.5 h-9 capitalize rounded-full font-medium shadow-lg justify-center"
+              >
+                {votacion.resultado}
+              </Badge>
+              <Button variant="link" className="rounded-full" onClick={handleDownload} >
+                <Download size={16} />
+                Descargar Acta de Votación
+              </Button>
+            </div>
           </div>
         </div>
 
