@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import React from "react"
 
 export default function Navigation() {
   const pathname = usePathname()
+  const [isOpen, setIsOpen] = React.useState(false)
 
   const navigationItems = [
     ["Votaciones", "/votaciones"],
@@ -38,7 +40,7 @@ export default function Navigation() {
         </div>
 
         {/* Mobile Navigation */}
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon" className="text-gray-600 dark:text-white">
               <Menu className="h-6 w-6" />
@@ -51,6 +53,7 @@ export default function Navigation() {
                 <Link
                   key={url}
                   href={url}
+                  onClick={() => setIsOpen(false)}
                   className={`text-gray-600 dark:text-white hover:text-gray-900 dark:hover:text-gray-300 text-lg ${
                     pathname === url ? "border-b-2 border-gray-900 dark:border-white" : ""
                   }`}
