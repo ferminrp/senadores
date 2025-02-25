@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import Avatar from "../../components/Avatar"
 import { useVotaciones, useSenatorsData } from "../../lib/data"
 import { Armchair, CheckCircle2, XCircle, CircleDot, Search } from "lucide-react"
@@ -14,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { getPartyLogoPath } from "../../lib/utils/partyLogos"
 
 interface Senator {
   nombre: string;
@@ -245,12 +247,12 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                     />
                     <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center
                       ${vote.voto.toLowerCase() === "si" 
-                        ? "bg-green-100 dark:bg-green-400/40 text-green-600 dark:text-green-400/90 ring-1 ring-green-200 dark:ring-green-400/50" 
+                        ? "bg-green-100 text-green-600 dark:text-green-400/90 ring-1 ring-green-200 dark:ring-green-400/50" 
                         : vote.voto.toLowerCase() === "no" 
-                          ? "bg-red-100 dark:bg-red-400/40 text-red-600 dark:text-red-400/90 ring-1 ring-red-200 dark:ring-red-400/50"
+                          ? "bg-red-100  text-red-600 dark:text-red-400/90 ring-1 ring-red-200 dark:ring-red-400/50"
                           : vote.voto.toLowerCase() === "ausente"
-                            ? "bg-gray-100 dark:bg-gray-400/40 text-gray-600 dark:text-gray-400/90 ring-1 ring-gray-200 dark:ring-gray-400/50"
-                            : "bg-yellow-100 dark:bg-yellow-400/40 text-yellow-600 dark:text-yellow-400/90 ring-1 ring-yellow-200 dark:ring-yellow-400/50"}`}
+                            ? "bg-gray-100 text-gray-600 dark:text-gray-400/90 ring-1 ring-gray-200 dark:ring-gray-400/50"
+                            : "bg-yellow-100 text-yellow-600 dark:text-yellow-400/90 ring-1 ring-yellow-200 dark:ring-yellow-400/50"}`}
                     >
                       {vote.voto.toLowerCase() === "si" 
                         ? <CheckCircle2 size={14} /> 
@@ -268,22 +270,40 @@ function SearchBar({ votes, senatorsData }: { votes: any[]; senatorsData: any })
                     <p className="text-sm text-muted-foreground truncate mt-0.5">
                       {senatorsData.find((senator: Senator) => senator.nombre === vote.nombre)?.partido || "Sin partido"}
                     </p>
-                    <div className={`inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-medium
-                      ${vote.voto.toLowerCase() === "si" 
-                        ? "bg-green-100 dark:bg-green-400/10 text-green-600 dark:text-green-400" 
-                        : vote.voto.toLowerCase() === "no" 
-                          ? "bg-red-100 dark:bg-red-400/10 text-red-600 dark:text-red-400"
-                          : vote.voto.toLowerCase() === "ausente"
-                            ? "bg-gray-100 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400"
-                            : "bg-yellow-100 dark:bg-yellow-400/10 text-yellow-600 dark:text-yellow-400"}`}
-                    >
-                      {vote.voto.toLowerCase() === "si" 
-                        ? "Afirmativo"
-                        : vote.voto.toLowerCase() === "no"
-                          ? "Negativo"
-                          : vote.voto.toLowerCase() === "ausente"
-                            ? "Ausente"
-                            : "Abstención"}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
+                        ${vote.voto.toLowerCase() === "si" 
+                          ? "bg-green-100 dark:bg-green-400/10 text-green-600 dark:text-green-400" 
+                          : vote.voto.toLowerCase() === "no" 
+                            ? "bg-red-100 dark:bg-red-400/10 text-red-600 dark:text-red-400"
+                            : vote.voto.toLowerCase() === "ausente"
+                              ? "bg-gray-100 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400"
+                              : "bg-yellow-100 dark:bg-yellow-400/10 text-yellow-600 dark:text-yellow-400"}`}
+                      >
+                        {vote.voto.toLowerCase() === "si" 
+                          ? "Afirmativo"
+                          : vote.voto.toLowerCase() === "no"
+                            ? "Negativo"
+                            : vote.voto.toLowerCase() === "ausente"
+                              ? "Ausente"
+                              : "Abstención"}
+                      </div>
+                      
+                      {(() => {
+                        const partido = senatorsData.find((senator: Senator) => senator.nombre === vote.nombre)?.partido;
+                        const logoPath = getPartyLogoPath(partido);
+                        return logoPath ? (
+                          <div className="relative flex-shrink-0">
+                            <Image
+                              src={logoPath}
+                              alt={`Logo de ${partido}`}
+                              width={28}
+                              height={28}
+                              className="object-contain rounded"
+                            />
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                   </div>
                 </div>

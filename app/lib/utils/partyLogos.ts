@@ -9,16 +9,25 @@ const normalizePartyName = (partyName: string): string => {
     .replace(/\s+/g, '_') // Replace spaces with underscores
     .replace(/\./g, '') // Remove dots
     .replace(/-/g, '_') // Replace hyphens with underscores
+    .replace(/\+/g, '_plus_') // Replace + with _plus_
     .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Remove accents
 };
 
 // Function to get logo path based on party name
-export const getPartyLogoPath = (partyName: string | undefined): string | null => {
-  if (!partyName) return null;
+export function getPartyLogoPath(party: string | undefined): string | null {
+  if (!party) return null;
   
-  const normalizedPartyName = normalizePartyName(partyName);
+  // Captura específica para "Eco + Vamos Corrientes"
+  if (party === "Eco + Vamos Corrientes") {
+    return "/logos_partidos/eco_mas_vamos_corrientes.jpg";
+  }
   
-  // Direct mapping for special cases that don't follow the standard pattern
+  const normalized = normalizePartyName(party);
+  
+  // Log the normalized party name for debugging
+  console.log(`Normalizing party: "${party}" -> "${normalized}"`);
+  
+  // Casos especiales para mapear nombres normalizados a rutas de archivos
   const specialCases: Record<string, string> = {
     "alianza_cambiemos": "/logos_partidos/Cambiemos_logo.png",
     "alianza_frente_de_todos": "/logos_partidos/alianza_frente_de_todos.svg",
@@ -30,8 +39,8 @@ export const getPartyLogoPath = (partyName: string | undefined): string | null =
     "union_por_cordoba": "/logos_partidos/union_por_cordoba.jpg",
     "alianza_union_por_cordoba": "/logos_partidos/union_por_cordoba.jpg",
     "hacemos_por_cordoba": "/logos_partidos/hacemos_por_ cordoba.png",
-    "frente_renovador_de_la_concordia": "/logos_partidos/frente_renovador_de_la_concordia.jpg",
-    "frente_renovador_de_la_concordia_innovacion_federal": "/logos_partidos/frente_renovador_de_la_concordia.jpg",
+    "frente_renovador_de_la_concordia": "/logos_partidos/frente_renovador_de_la_concordia.png",
+    "frente_renovador_de_la_concordia_innovacion_federal": "/logos_partidos/frente_renovador_de_la_concordia.png",
     "juntos_por_el_cambio": "/logos_partidos/juntos_por_el_cambio.png",
     "juntos_por_el_cambio_chubut": "/logos_partidos/juntos_por_el_cambio_chubut.png",
     "juntos_por_el_cambio_tierra_del_fuego": "/logos_partidos/juntos_por_el_cambio_tierra_del_fuego.jpeg",
@@ -44,7 +53,7 @@ export const getPartyLogoPath = (partyName: string | undefined): string | null =
     "frente_cambia_mendoza": "/logos_partidos/frente_cambia_mendoza.png",
     "alianza_frente_progresista": "/logos_partidos/alianza_frente_progresista.png",
     "frente_amplio_progresista": "/logos_partidos/frente_amplio_progresista.png",
-    "eco_vamos_corrientes": "/logos_partidos/eco_+_vamos_corrientes.jpg",
+    "eco_mas_vamos_corrientes": "/logos_partidos/eco_mas_vamos_corrientes.jpg",
     "alianza_por_santa_cruz": "/logos_partidos/alianza_por_santa_cruz.png",
     "blanco_de_los_trabaj_jujuy": "/logos_partidos/blanco_de_los_trabaj_jujuy.jpg",
     "chubut_somos_todos": "/logos_partidos/chubut_somos_todos.png",
@@ -56,18 +65,18 @@ export const getPartyLogoPath = (partyName: string | undefined): string | null =
   };
 
   // Check if we have a direct mapping for this party
-  if (specialCases[normalizedPartyName]) {
-    return specialCases[normalizedPartyName];
+  if (specialCases[normalized]) {
+    return specialCases[normalized];
   }
 
   // Try some common variations
   for (const [key, value] of Object.entries(specialCases)) {
     // Check if the normalized party name is contained in any key or vice versa
-    if (key.includes(normalizedPartyName) || normalizedPartyName.includes(key)) {
+    if (key.includes(normalized) || normalized.includes(key)) {
       return value;
     }
   }
 
   // Default fallback: return null if no matching logo was found
   return null;
-}; 
+} 

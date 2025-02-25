@@ -79,7 +79,7 @@ export default function SenadorCard({
                     alt={`Logo de ${party}`}
                     width={60}
                     height={60}
-                    className="object-contain"
+                    className="object-contain rounded"
                   />
                 </div>
               )}
